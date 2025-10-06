@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="spending.png" />
+    <title>TALYEXP - Expense Manager</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="TALYEXP.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body>
+    <div id="splash-screen">
+        <div><img class="splash-logo" src="spending.png" alt="TX"></div>
+        <div class="splash-title">TALYEXP</div>
+    </div>
+
+    <div id="login-screen" class="login-screen" style="display:none">
+        <div class="login-box">
+            <div><img class="login-logo" src="spending.png" alt="TX"></div>
+            <h2 id="auth-title">Welcome to talyexp</h2>
+            <p id="auth-subtitle">Enter your credentials to access your dashboard</p>
+            <div class="input-group">
+                <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                        fill="currentColor" viewBox="0 0 256 256">
+                        <path
+                            d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.84,8c18.84-32.56,52.14-52,89.08-52s70.24,19.44,89.08,52a8,8,0,1,0,13.84-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z">
+                        </path>
+                    </svg></span>
+                <input id="loginUser" class="input" placeholder="Username" />
+            </div>
+            <div class="input-group">
+                <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                        fill="currentColor" viewBox="0 0 256 256">
+                        <path
+                            d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96v96a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-80,84a12,12,0,1,1,12-12A12,12,0,0,1,128,164Zm32-84H96V56a32,32,0,0,1,64,0Z">
+                        </path>
+                    </svg></span>
+                <input id="loginPass" class="input" placeholder="Password" type="password" />
+            </div>
+            <div id="confirm-pass-group" class="input-group" style="display: none;">
+                <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                        fill="currentColor" viewBox="0 0 256 256">
+                        <path
+                            d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96v96a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-80,84a12,12,0,1,1,12-12A12,12,0,0,1,128,164Zm32-84H96V56a32,32,0,0,1,64,0Z">
+                        </path>
+                    </svg></span>
+                <input id="confirmPass" class="input" placeholder="Confirm Password" type="password" />
+            </div>
+            <button id="authBtn" class="login-btn">Secure Sign In</button>
+            <div class="auth-toggle">
+                <span id="auth-toggle-text">Don't have an account?</span>
+                <a id="auth-toggle-link">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-wrap" id="app-container">
+        <header class="card">
+            <div class="brand">
+                <div><img class="logo" src="spending.png" alt="TX"></div>
+                <div>
+                    <h1>TALYEXP</h1>
+                    <div id="user-greeting" class="subtitle"></div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="top-actions" style="display:flex; gap: 8px; align-items:center;">
+                    <select id="downloadPeriod" class="search-input small">
+                        <option value="weekly">This week</option>
+                        <option value="monthly">This Month</option>
+                        <option value="yearly">This year</option>
+                    </select>
+                    <button id="downloadBtn" class="btn small">Download Report</button>
+                </div>
+                <nav class="main-nav">
+                    <button id="hamburger-btn" style="font-size: 28px; background: none; border: none; cursor: pointer;"
+                        title="Take a bite!">
+                        🍔
+                    </button>
+
+                    <div id="nav-links">
+                        <button id="homeBtn" class="btn small active">Home</button>
+                        <button id="txBtn" class="btn small ghost">Transactions</button>
+                        <button id="fullResetBtn" class="btn small danger">Reset App</button>
+                        <button id="logoutBtn" class="btn ghost small">Logout</button>
+                        <button id="calculatorBtn" class="btn ghost small" title="Calculator" style="padding: 6px 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                viewBox="0 0 256 256">
+                                <path
+                                    d="M184,32H72A16,16,0,0,0,56,48V208a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V48A16,16,0,0,0,184,32Zm0,176H72V48H184ZM128,80a12,12,0,1,1-12,12A12,12,0,0,1,128,80Zm36,28a12,12,0,1,1-12,12A12,12,0,0,1,164,108Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,128,108Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,92,108Zm72,36a12,12,0,1,1-12,12A12,12,0,0,1,164,144Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,128,144Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,92,144Zm72,36a12,12,0,1,1-12,12A12,12,0,0,1,164,180Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,128,180Z">
+                                </path>
+                            </svg>
+                            <div class="calcbtn">Calculator</div>
+                        </button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <div id="home-view">
+                <div class="app-grid">
+                    <section class="left-column">
+                        <div class="card" style="flex-shrink: 0;">
+                            <h3 style="margin-top:0; color: var(--accent);">Smart Insights</h3>
+                            <div id="smart-insights">
+                                <p class="subtitle">Add more transactions to see smart suggestions.</p>
+                            </div>
+                        </div>
+                        <div class="card" style="flex-grow: 1;">
+                            <div style="display:flex; justify-content: space-between; align-items: center;">
+                                <label for="monthlyIncome">Monthly Income (for selected month)</label>
+                            </div>
+                            <div style="display:flex;gap:8px;align-items:center; margin-top: 6px;">
+                                <input id="monthlyIncome" class="input" type="number"
+                                    placeholder="Income for selected month" />
+                                <button id="saveIncome" class="btn small">Save</button>
+                            </div>
+                            <div style="margin-top:8px" class="subtitle">Remaining this month: <strong
+                                    id="remaining">₹0.00</strong></div>
+                        </div>
+                        <div class="card" style="flex-shrink: 0;">
+                            <div>
+                                <label for="title">Title</label>
+                                <input id="title" class="input" type="text" placeholder="e.g., Dinner with friends" />
+                            </div>
+                            <div class="form-row" style="margin-top: 14px;">
+                                <div style="flex:1"><label for="amount">Amount (₹)</label><input id="amount"
+                                        class="input" type="number" placeholder="0.00" /></div>
+                                <div style="width:150px"><label for="date">Date</label><input id="date" class="input"
+                                        type="date" /></div>
+                            </div>
+                            <div style="margin-top: 14px;">
+                                <label for="category">Category</label>
+                                <input id="category" type="text" class="input"
+                                    placeholder="e.g., Food, Transport, Bills" />
+                            </div>
+                            <div style="display:flex;gap:10px;margin-top:16px;align-items:center;">
+                                <button id="addBtn" class="btn">Add Expense</button>
+                                <button id="voiceBtn" class="btn ghost" title="Add with Voice"
+                                    style="padding: 8px 12px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        viewBox="0 0 256 256">
+                                        <path
+                                            d="M128,176a48.05,48.05,0,0,0,48-48V64a48,48,0,0,0-96,0v64A48.05,48.05,0,0,0,128,176ZM96,64a32,32,0,0,1,64,0v64a32,32,0,0,1-64,0Zm40,151.6V240a8,8,0,0,1-16,0V215.6A80.05,80.05,0,0,1,48,128a8,8,0,0,1,16,0,64,64,0,0,0,128,0,8,8,0,0,1,16,0A80.05,80.05,0,0,1,136,215.6Z">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <button id="updateBtn" class="btn ghost" style="display:none">Update</button>
+                                <button id="resetBtn" class="btn ghost">Reset</button>
+                            </div>
+                        </div>
+                        <div class="card" style="flex-shrink: 0;">
+                            <div class="summary">
+                                <div class="stat">
+                                    <h3>Total</h3>
+                                    <p id="totalAll">₹0.00</p>
+                                </div>
+                                <div class="stat">
+                                    <h3>This Month</h3>
+                                    <p id="totalMonth">₹0.00</p>
+                                </div>
+                                <div class="stat">
+                                    <h3>Transactions</h3>
+                                    <p id="countTx">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="right-column">
+                        <div class="card" style="flex-grow: 1;">
+                            <div
+                                style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom:10px;">
+                                <label for="chartPeriod" class="subtitle" style="margin:0;">Filter Charts:</label>
+                                <select id="chartPeriod" class="search-input small">
+                                    <option value="monthly">This Month</option>
+                                    <option value="weekly">Last 7 Days</option>
+                                    <option value="yearly">This Year</option>
+                                    <option value="all">All Time</option>
+                                </select>
+                            </div>
+                            <div class="charts-grid">
+                                <div class="chart-card"><canvas id="monthlyBarChart"></canvas></div>
+                                <div class="chart-card"><canvas id="categoryBarChart"></canvas></div>
+                                <div class="chart-card"><canvas id="pieChart"></canvas></div>
+                                <div class="chart-card"><canvas id="donutChart"></canvas></div>
+                            </div><br>
+                            <div class="charts-grid1"></div>
+                            <div class="chart-card"><canvas id="cashFlowTrendChart"></canvas></div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="transactions-view" class="card">
+                <div class="top-bar">
+                    <h2 style="margin:0;">Monthly Overview</h2>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button id="downloadYearlyBtn" class="btn small ghost">Yearly Report</button>
+                        <button id="downloadQuarterlyBtn" class="btn small ghost">Quarterly Report</button>
+                        <input id="txSearch" class="search-input" placeholder="Search transactions..." />
+                    </div>
+                </div>
+
+                <div id="txListContainer" class="tx-list-container">
+                    <div id="txGrid" class="tx-grid"></div>
+                </div>
+            </div>
+        </main>
+        <footer class="card" style="margin-top: 12px; padding: 12px; text-align: center;">
+            <p style="margin:0; font-size: 14px; color: var(--muted);">
+                Developed by <strong>PCJ</strong>
+                <br> &copy; 2025 TALYEXP. All Rights Reserved.
+
+            </p>
+        </footer>
+    </div>
+
+    <div id="tx-modal" class="tx-modal">
+        <div class="tx-modal-content">
+            <div class="tx-modal-header">
+                <h2 id="tx-modal-title">Month Details</h2>
+                <button id="close-modal-btn" class="close-modal-btn">&times;</button>
+            </div>
+            <div id="tx-modal-body" class="tx-modal-body">
+            </div>
+        </div>
+    </div>
+
+    <div id="reset-modal" class="reset-modal">
+        <div class="reset-box">
+            <h2>Data Archive Required</h2>
+            <p>Your expense data is over one year old. To continue, you must download a complete archive. The
+                application will then reset.</p>
+            <button id="downloadArchiveBtn" class="btn">Download Archive & Reset</button>
+        </div>
+    </div>
+
+    <div id="calculator-modal" class="reset-modal">
+        <div id="calculator">
+            <div id="calc-display" class="calc-display">0</div>
+            <div class="calc-keys">
+                <button class="calc-key calc-key-op" data-key="clear">C</button>
+                <button class="calc-key calc-key-op" data-key="/">/</button>
+                <button class="calc-key calc-key-op" data-key="*">*</button>
+                <button class="calc-key calc-key-op" data-key="-">-</button>
+                <button class="calc-key" data-key="7">7</button>
+                <button class="calc-key" data-key="8">8</button>
+                <button class="calc-key" data-key="9">9</button>
+                <button class="calc-key calc-key-op" data-key="+">+</button>
+                <button class="calc-key" data-key="4">4</button>
+                <button class="calc-key" data-key="5">5</button>
+                <button class="calc-key" data-key="6">6</button>
+                <button class="calc-key calc-key-equals" data-key="=">=</button>
+                <button class="calc-key" data-key="1">1</button>
+                <button class="calc-key" data-key="2">2</button>
+                <button class="calc-key" data-key="3">3</button>
+                <button class="calc-key calc-key-zero" data-key="0">0</button>
+                <button class="calc-key" data-key=".">.</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- App State & Constants ---
+        const SESSION_KEY = 'talyexp_v1:session';
+        let expenses = [];
+        let groupedExpenses = {};
+        let meta = { startTs: Date.now() };
+        let editingId = null;
+        let monthlyIncomes = {};
+        let chartInstances = {};
+        let isLoginMode = true;
+
+        // --- DOM Elements ---
+        const splashScreen = document.getElementById('splash-screen');
+        const loginScreen = document.getElementById('login-screen');
+        const appContainer = document.getElementById('app-container');
+        const authBtn = document.getElementById('authBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const fullResetBtn = document.getElementById('fullResetBtn');
+        const homeBtn = document.getElementById('homeBtn');
+        const txBtn = document.getElementById('txBtn');
+        const homeView = document.getElementById('home-view');
+        const transactionsView = document.getElementById('transactions-view');
+        const titleEl = document.getElementById('title');
+        const amountEl = document.getElementById('amount');
+        const dateEl = document.getElementById('date');
+        const categoryEl = document.getElementById('category');
+        const addBtn = document.getElementById('addBtn');
+        const updateBtn = document.getElementById('updateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const totalAll = document.getElementById('totalAll');
+        const totalMonth = document.getElementById('totalMonth');
+        const countTx = document.getElementById('countTx');
+        const downloadPeriod = document.getElementById('downloadPeriod');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const chartPeriod = document.getElementById('chartPeriod');
+        const monthlyIncomeEl = document.getElementById('monthlyIncome');
+        const saveIncomeBtn = document.getElementById('saveIncome');
+        const remainingEl = document.getElementById('remaining');
+        const txSearch = document.getElementById('txSearch');
+        const resetModal = document.getElementById('reset-modal');
+        const downloadArchiveBtn = document.getElementById('downloadArchiveBtn');
+        const authToggleLink = document.getElementById('auth-toggle-link');
+        const confirmPassGroup = document.getElementById('confirm-pass-group');
+        const loginUserEl = document.getElementById('loginUser');
+        const loginPassEl = document.getElementById('loginPass');
+        const confirmPassEl = document.getElementById('confirmPass');
+        const txGrid = document.getElementById('txGrid');
+        const txModal = document.getElementById('tx-modal');
+        const txModalTitle = document.getElementById('tx-modal-title');
+        const txModalBody = document.getElementById('tx-modal-body');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const downloadYearlyBtn = document.getElementById('downloadYearlyBtn');
+        const downloadQuarterlyBtn = document.getElementById('downloadQuarterlyBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const calculatorModal = document.getElementById('calculator-modal');
+        const calculatorBtn = document.getElementById('calculatorBtn');
+        const userGreetingEl = document.getElementById('user-greeting');
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const navLinks = document.getElementById('nav-links');
+
+        // --- Utility Functions ---
+        const numberFormat = (n) => Number(n).toLocaleString('en-IN', {
+            style: 'decimal',  // <--- CHANGE THIS TO 'decimal'
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+            // Remove the currency: 'INR' option
+        });
+        const formatDate = (d) => new Date(d).toLocaleDateString('en-GB');
+        const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        // --- Authentication ---
+        const isLoggedIn = () => !!sessionStorage.getItem(SESSION_KEY);
+
+        function validatePassword(password) {
+            if (password.length < 10) { alert(`Password must be at least 10 characters long.`); return false; }
+            if (!/[A-Z]/.test(password)) { alert('Password must contain at least one uppercase letter.'); return false; }
+            if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) { alert('Password must contain at least one special character.'); return false; }
+            return true;
+        }
+
+        async function handleAuth() {
+            const username = loginUserEl.value.trim().toLowerCase();
+            const password = loginPassEl.value;
+            if (!username || !password) {
+                alert('Username and password cannot be empty.');
+                return;
+            }
+            try {
+                if (isLoginMode) {
+                    const res = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Invalid credentials');
+                    sessionStorage.setItem(SESSION_KEY, username);
+                    loginScreen.style.display = 'none';
+                    appContainer.style.display = 'flex';
+                    await loadDataAndRender();
+                } else {
+                    const confirmPass = confirmPassEl.value;
+                    if (password !== confirmPass) { alert('Passwords do not match.'); return; }
+                    if (!validatePassword(password)) return;
+                    const res = await fetch('/api/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Registration failed');
+                    alert('Account created successfully! Please sign in.');
+                    toggleAuthMode();
+                }
+            } catch (err) {
+                alert(`Authentication Error: ${err.message}`);
+            }
+        }
+
+        function handleLogout() {
+            sessionStorage.removeItem(SESSION_KEY);
+            location.reload();
+        }
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            loginUserEl.value = loginPassEl.value = confirmPassEl.value = '';
+            if (isLoginMode) {
+                document.getElementById('auth-title').textContent = 'Welcome Back';
+                authBtn.textContent = 'Secure Sign In';
+                confirmPassGroup.style.display = 'none';
+                authToggleLink.textContent = 'Sign Up';
+            } else {
+                document.getElementById('auth-title').textContent = 'Create Account';
+                authBtn.textContent = 'Sign Up';
+                confirmPassGroup.style.display = 'block';
+                authToggleLink.textContent = 'Sign In';
+            }
+        }
+
+        // --- View Management ---
+        function showView(viewId) {
+            homeView.style.display = 'none';
+            transactionsView.style.display = 'none';
+            homeBtn.classList.remove('active', 'ghost');
+            txBtn.classList.remove('active', 'ghost');
+            if (viewId === 'home') {
+                homeView.style.display = 'block';
+                homeBtn.classList.add('active');
+                txBtn.classList.add('ghost');
+            } else {
+                transactionsView.style.display = 'block';
+                txBtn.classList.add('active');
+                homeBtn.classList.add('ghost');
+                renderTransactions();
+            }
+        }
+
+        // --- Data Persistence (Backend) ---
+        async function loadDataAndRender() {
+            const user = sessionStorage.getItem(SESSION_KEY);
+            if (!user) return;
+            try {
+                const [expensesRes, incomeRes, metaRes] = await Promise.all([
+                    fetch(`/api/expenses/${user}`),
+                    fetch(`/api/income/${user}`),
+                    fetch(`/api/meta/${user}`)
+                ]);
+                if (!expensesRes.ok || !incomeRes.ok || !metaRes.ok) {
+                    throw new Error('Failed to fetch user data from server.');
+                }
+                expenses = await expensesRes.json();
+                const incomeData = await incomeRes.json();
+                meta = await metaRes.json();
+                monthlyIncomes = incomeData.reduce((acc, item) => {
+                    acc[item.monthKey] = item.income;
+                    return acc;
+                }, {});
+                const capitalizedUser = user.charAt(0).toUpperCase() + user.slice(1);
+                userGreetingEl.innerHTML = `Welcome, <strong style="color: var(--accent);">${escapeHtml(capitalizedUser)}</strong>`;
+                if (checkYearReset()) return;
+                renderHome();
+                if (transactionsView.style.display === 'block') {
+                    renderTransactions();
+                }
+            } catch (err) {
+                console.error('Error loading data:', err);
+                alert('Could not load your data. Please try again later.');
+                handleLogout();
+            }
+        }
+
+        // --- Rendering ---
+        function renderHome() {
+            const total = expenses.reduce((s, x) => s + Number(x.amount), 0);
+            totalAll.textContent = numberFormat(total);
+            const today = new Date();
+            const ym = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+            const monthTotal = expenses.filter(e => e.date.startsWith(ym)).reduce((s, x) => s + Number(x.amount), 0);
+            totalMonth.textContent = numberFormat(monthTotal);
+            countTx.textContent = expenses.length;
+            renderIncomeForSelectedMonth();
+            renderAllCharts();
+            generateSmartInsights();
+        }
+
+        function renderIncomeForSelectedMonth() {
+            const selectedDateStr = dateEl.value;
+            if (!selectedDateStr) return;
+            const monthKey = selectedDateStr.slice(0, 7);
+            const incomeForMonth = monthlyIncomes[monthKey] || 0;
+            monthlyIncomeEl.value = incomeForMonth > 0 ? incomeForMonth : '';
+            const monthTotal = expenses.filter(e => e.date.startsWith(monthKey)).reduce((sum, e) => sum + Number(e.amount), 0);
+            const remaining = Math.max(0, incomeForMonth - monthTotal);
+            remainingEl.textContent = numberFormat(remaining);
+        }
+
+        function renderTransactions() {
+            const query = txSearch.value.trim().toLowerCase();
+            const sorted = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const list = query
+                ? sorted.filter(e =>
+                    e.title.toLowerCase().includes(query) ||
+                    e.category.toLowerCase().includes(query)
+                )
+                : sorted;
+
+            txGrid.innerHTML = '';
+            if (list.length === 0) {
+                txGrid.innerHTML = `
+            <div class="subtitle" style="text-align:center; padding: 20px; grid-column: 1 / -1;">
+                No transactions found.
+            </div>`;
+                return;
+            }
+
+            // ✅ Group by stable key YYYY-MM (independent of locale)
+            groupedExpenses = list.reduce((acc, tx) => {
+                let d = new Date(tx.date);
+                if (isNaN(d)) {
+                    // handle weird string dates or Mongo ISO format
+                    try {
+                        d = new Date(String(tx.date).split('T')[0]);
+                    } catch {
+                        return acc;
+                    }
+                }
+                if (isNaN(d)) return acc;
+
+                const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                const label = d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
+                if (!acc[monthKey]) acc[monthKey] = { label, transactions: [], total: 0 };
+                acc[monthKey].transactions.push(tx);
+                acc[monthKey].total += Number(tx.amount) || 0;
+                return acc;
+            }, {});
+
+            const sortedKeys = Object.keys(groupedExpenses).sort().reverse();
+
+            for (const key of sortedKeys) {
+                const group = groupedExpenses[key];
+                const card = document.createElement('div');
+                card.className = 'month-card';
+                card.dataset.key = key;
+                card.innerHTML = `
+            <h3>${group.label}</h3>
+            <p>Total: <strong>${numberFormat(group.total)}</strong></p>
+            <p>${group.transactions.length} Transactions</p>`;
+                // ✅ Click event uses stable key
+                card.onclick = () => showMonthDetails(key);
+                txGrid.appendChild(card);
+            }
+        }
+
+        window.showMonthDetails = (monthKey) => {
+            const group = groupedExpenses[monthKey];
+            if (!group) {
+                alert('No transactions found for this month.');
+                return;
+            }
+
+            txModalTitle.textContent = group.label;
+            txModalBody.innerHTML = '';
+
+            for (const e of group.transactions) {
+                const d = new Date(e.date);
+                const safeDate = isNaN(d) ? e.date : formatDate(d);
+                const safeCat = escapeHtml(e.category || 'Misc');
+                const safeTitle = escapeHtml(e.title || '(Untitled)');
+                const safeAmount = numberFormat(e.amount || 0);
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'expense-item';
+                itemDiv.innerHTML = `
+            <div class="expense-left">
+                <div class="cat-badge">${safeCat.slice(0, 2).toUpperCase()}</div>
+                <div>
+                    <div style="font-weight:700">${safeTitle}</div>
+                    <div class="meta">${safeDate} • ${safeCat}</div>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div class="amount">${safeAmount}</div>
+                <div class="controls">
+                    <button class="btn ghost small" onclick="editExpense('${e._id}')">Edit</button>
+                    <button class="btn ghost small" onclick="deleteExpense('${e._id}')">Delete</button>
+                </div>
+            </div>`;
+                txModalBody.appendChild(itemDiv);
+            }
+
+            txModal.style.display = 'flex';
+        };
+
+
+        // --- Form Handling ---
+        function resetForm() {
+            titleEl.value = '';
+            amountEl.value = '';
+            dateEl.value = new Date().toISOString().slice(0, 10);
+            categoryEl.value = '';
+            editingId = null;
+            updateBtn.style.display = 'none';
+            addBtn.style.display = 'inline-block';
+            renderIncomeForSelectedMonth();
+        }
+
+        window.editExpense = (id) => {
+            txModal.style.display = 'none';
+            const item = expenses.find(e => e._id === id);
+            if (!item) return;
+            showView('home');
+            titleEl.value = item.title;
+            amountEl.value = item.amount;
+            dateEl.value = item.date;
+            categoryEl.value = item.category;
+            editingId = id;
+            addBtn.style.display = 'none';
+            updateBtn.style.display = 'inline-block';
+            titleEl.focus();
+            renderIncomeForSelectedMonth();
+        };
+
+        window.deleteExpense = async (id) => {
+            if (!confirm('Are you sure you want to delete this expense?')) return;
+            try {
+                const res = await fetch(`/api/expenses/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Failed to delete expense from server.');
+                await loadDataAndRender();
+                txModal.style.display = 'none';
+            } catch (err) {
+                alert(err.message);
+            }
+        };
+
+        // --- Charting ---
+        function getFilteredExpenses() {
+            const period = chartPeriod.value;
+            const now = new Date();
+            if (period === 'all') return expenses;
+            if (period === 'yearly') return expenses.filter(e => new Date(e.date).getFullYear() === now.getFullYear());
+            if (period === 'monthly') return expenses.filter(e => {
+                const d = new Date(e.date);
+                return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+            });
+            if (period === 'weekly') {
+                const lastWeek = new Date();
+                lastWeek.setDate(now.getDate() - 7);
+                return expenses.filter(e => new Date(e.date) >= lastWeek);
+            }
+            return expenses;
+        }
+
+        function renderAllCharts() {
+            renderMonthlyBarChart();
+            renderCategoryBarChart();
+            renderPieChart();
+            renderDonutChart();
+            renderCashFlowTrendChart();
+        }
+
+        function createChart(canvasId, type, data, options) {
+            if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            chartInstances[canvasId] = new Chart(ctx, { type, data, options });
+        }
+        const chartDefaultOptions = { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#FFFFFF' }, grid: { color: 'rgba(255,255,255,0.1)' } }, x: { ticks: { color: '#FFFFFF' }, grid: { color: 'rgba(255,255,255,0.1)' } } } };
+
+        function renderMonthlyBarChart() {
+            const labels = [], dataPoints = [], now = new Date();
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                labels.push(d.toLocaleString('default', { month: 'short' }));
+                const sum = expenses.filter(e => e.date.startsWith(key)).reduce((a, b) => a + Number(b.amount), 0);
+                dataPoints.push(sum);
+            }
+            const ctx = document.getElementById('monthlyBarChart').getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(110, 231, 183, 0.8)');
+            gradient.addColorStop(1, 'rgba(110, 231, 183, 0.1)');
+            createChart('monthlyBarChart', 'bar', { labels, datasets: [{ label: 'Monthly Spend', data: dataPoints, backgroundColor: gradient, borderColor: 'var(--accent)', borderWidth: 1 }] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Last 6 Months Spend', color: '#FFFFFF' } } });
+        }
+
+        function renderCategoryBarChart() {
+            const data = getFilteredExpenses();
+            const categoryTotals = data.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
+            const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+            const colors = ["#60a5fa", "#fbbf24", "#fb7185", "#a78bfa", "#f87171", "#6ee7b7", "#f472b6"];
+            createChart('categoryBarChart', 'bar', { labels: sorted.map(item => item[0]), datasets: [{ label: 'By Category', data: sorted.map(item => item[1]), backgroundColor: colors }] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Spend by Category', color: '#FFFFFF' } } });
+        }
+
+        function renderPieChart() {
+            const data = getFilteredExpenses();
+            const categoryTotals = data.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
+            const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+            createChart('pieChart', 'pie', { labels: sorted.map(item => item[0]), datasets: [{ data: sorted.map(item => item[1]), backgroundColor: ["#6ee7b7", "#60a5fa", "#fbbf24", "#fb7185", "#a78bfa", "#f472b6", "#f87171"] }] }, { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: '#FFFFFF' } } } });
+        }
+
+        function renderDonutChart() {
+            const data = getFilteredExpenses();
+            const spent = data.reduce((s, x) => s + Number(x.amount), 0);
+            let budget = 0;
+            const now = new Date();
+            const monthKey = now.toISOString().slice(0, 7);
+            const incomeForCurrentMonth = monthlyIncomes[monthKey] || 0;
+            if (chartPeriod.value === 'monthly') budget = incomeForCurrentMonth;
+            if (chartPeriod.value === 'weekly') budget = incomeForCurrentMonth / 4.33;
+            if (budget > 0) {
+                const remaining = Math.max(0, budget - spent);
+                createChart('donutChart', 'doughnut', { labels: ['Spent', 'Remaining'], datasets: [{ data: [spent, remaining], backgroundColor: ['#fb7185', '#60a5fa'], borderWidth: 0 }] }, { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: '#FFFFFF' } } } });
+            } else {
+                const categoryTotals = data.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
+                const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+                createChart('donutChart', 'doughnut', { labels: sorted.map(item => item[0]), datasets: [{ data: sorted.map(item => item[1]), backgroundColor: ["#fb7185", "#60a5fa", "#fbbf24", "#a78bfa", "#6ee7b7", "#f472b6"], borderWidth: 0 }] }, { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: '#FFFFFF' } } } });
+            }
+        }
+
+        function renderCashFlowTrendChart() {
+            const data = getFilteredExpenses();
+            let labels = [], dataPoints = [];
+            if (data.length === 0) {
+                createChart('cashFlowTrendChart', 'line', { labels: [], datasets: [] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Cash Flow Trend', color: '#FFFFFF' } } });
+                return;
+            }
+            if (chartPeriod.value === 'weekly') {
+                const dailyTotals = {}; const today = new Date();
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(); d.setDate(today.getDate() - i);
+                    const key = d.toISOString().slice(0, 10);
+                    labels.push(d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
+                    dailyTotals[key] = 0;
+                }
+                data.forEach(tx => { if (dailyTotals[tx.date] !== undefined) { dailyTotals[tx.date] += Number(tx.amount); } });
+                dataPoints = Object.values(dailyTotals);
+            } else if (chartPeriod.value === 'monthly') {
+                const today = new Date(); const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                labels = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+                const monthlyData = {}; labels.forEach(day => monthlyData[day] = 0);
+                data.forEach(tx => {
+                    const d = new Date(tx.date);
+                    if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()) {
+                        monthlyData[d.getDate()] += Number(tx.amount);
+                    }
+                });
+                dataPoints = Object.values(monthlyData);
+            } else {
+                const monthlyData = {};
+                data.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(tx => {
+                    const monthKey = tx.date.slice(0, 7);
+                    monthlyData[monthKey] = (monthlyData[monthKey] || 0) + Number(tx.amount);
+                });
+                labels = Object.keys(monthlyData).map(key => new Date(key + '-02').toLocaleString('default', { month: 'short', year: '2-digit' }));
+                dataPoints = Object.values(monthlyData);
+            }
+            const ctx = document.getElementById('cashFlowTrendChart').getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(110, 231, 183, 0.5)');
+            gradient.addColorStop(1, 'rgba(110, 231, 183, 0.05)');
+            createChart('cashFlowTrendChart', 'line', { labels, datasets: [{ label: 'Spend Trend', data: dataPoints, borderColor: '#6ee7b7', backgroundColor: gradient, fill: true, tension: 0.3, borderWidth: 2 }] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Cash Flow Trend', color: '#FFFFFF' } } });
+        }
+
+        function generateSmartInsights() {
+            const insightsContainer = document.getElementById('smart-insights');
+            const now = new Date(), currentMonth = now.getMonth(), currentYear = now.getFullYear();
+            const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
+            const prevMonth = prevMonthDate.getMonth(), prevYear = prevMonthDate.getFullYear();
+            const currentMonthExpenses = expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === currentYear && d.getMonth() === currentMonth; });
+            const prevMonthExpenses = expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === prevYear && d.getMonth() === prevMonth; });
+            if (currentMonthExpenses.length < 2 || prevMonthExpenses.length < 2) { insightsContainer.innerHTML = '<p class="subtitle">Not enough data for comparison.</p>'; return; }
+            const currentCategoryTotals = currentMonthExpenses.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
+            const prevCategoryTotals = prevMonthExpenses.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
+            let insights = [];
+            for (const category in currentCategoryTotals) {
+                if (prevCategoryTotals[category]) {
+                    const current = currentCategoryTotals[category], prev = prevCategoryTotals[category];
+                    if (prev === 0) continue;
+                    const percentChange = Math.round(((current - prev) / prev) * 100);
+                    if (Math.abs(percentChange) >= 10) {
+                        if (percentChange > 0) insights.push(`<p class="negative">You spent ${percentChange}% more on ${escapeHtml(category)}.</p>`);
+                        else insights.push(`<p class="positive">${escapeHtml(category)} expenses are down by ${-percentChange}%.</p>`);
+                    }
+                }
+            }
+            const totalCurrent = currentMonthExpenses.reduce((s, e) => s + Number(e.amount), 0);
+            const totalPrev = prevMonthExpenses.reduce((s, e) => s + Number(e.amount), 0);
+            if (totalPrev > 0) {
+                const totalPercentChange = Math.round(((totalCurrent - totalPrev) / totalPrev) * 100);
+                if (totalPercentChange > 10) insights.unshift(`<p class="negative">Overall spending is up by ${totalPercentChange}%.</p>`);
+                else if (totalPercentChange < -10) insights.unshift(`<p class="positive">Great job! Spending is down by ${-totalPercentChange}%.</p>`);
+            }
+            insightsContainer.innerHTML = insights.length > 0 ? insights.slice(0, 3).join('') : '<p class="subtitle">Spending is stable. Keep it up!</p>';
+        }
+
+        // --- Data Export & PDF Report Generation ---
+        function generatePdfReport(dataToExport, filename, periodTitle) {
+            document.body.style.cursor = 'wait';
+            const { jsPDF } = window.jspdf;
+            if (!jsPDF) {
+                alert("Report generation library not loaded. Please refresh.");
+                document.body.style.cursor = 'default';
+                return;
+            }
+
+            const doc = new jsPDF();
+            const user = sessionStorage.getItem(SESSION_KEY) || 'User';
+            const capitalizedUser = user.charAt(0).toUpperCase() + user.slice(1);
+            const totalPagesExp = '{total_pages_count_string}';
+
+            // Add Header
+            const header = (data) => {
+                doc.setFontSize(20);
+                doc.setTextColor(40);
+                doc.setFont('helvetica', 'bold');
+                doc.text('TALYEXP', 15, 20);
+
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`Expense Report for ${capitalizedUser}`, 15, 26);
+                doc.text(`Period: ${periodTitle}`, doc.internal.pageSize.getWidth() - 15, 20, { align: 'right' });
+                doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')}`, doc.internal.pageSize.getWidth() - 15, 26, { align: 'right' });
+                doc.setLineWidth(0.5);
+                doc.line(15, 30, doc.internal.pageSize.getWidth() - 15, 30);
+            };
+
+            // Add Footer
+            const footer = (data) => {
+                const pageCount = doc.internal.getNumberOfPages();
+                doc.setFontSize(8);
+                doc.setTextColor(150);
+                doc.text(`Page ${data.pageNumber} of ${totalPagesExp}`, doc.internal.pageSize.getWidth() / 2, 287, { align: 'center' });
+                doc.text('TALYEXP | Confidential', 15, 287);
+            };
+
+            // Calculate Summary
+            const total = dataToExport.reduce((sum, item) => sum + Number(item.amount), 0);
+            const count = dataToExport.length;
+            const average = count > 0 ? total / count : 0;
+            const categoryTotals = dataToExport.reduce((acc, { category, amount }) => {
+                acc[category] = (acc[category] || 0) + Number(amount);
+                return acc;
+            }, {});
+            const topCategory = Object.keys(categoryTotals).length > 0 ? Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0] : ['N/A', 0];
+
+            // Add Summary Box
+            const summaryY = 40;
+            doc.setFillColor(245, 245, 245);
+            doc.roundedRect(14, summaryY, doc.internal.pageSize.getWidth() - 28, 25, 3, 3, 'F');
+            doc.setFontSize(10);
+            doc.setTextColor(50);
+            doc.text(`Total Expenses:`, 20, summaryY + 7);
+            doc.text(`Total Transactions:`, 20, summaryY + 14);
+            doc.text(`Average Transaction:`, doc.internal.pageSize.getWidth() / 2, summaryY + 7);
+            doc.text(`Top Category:`, doc.internal.pageSize.getWidth() / 2, summaryY + 14);
+
+            doc.setFont('helvetica', 'bold');
+            doc.text(numberFormat(total), 60, summaryY + 7);
+            doc.text(String(count), 60, summaryY + 14);
+            doc.text(numberFormat(average), doc.internal.pageSize.getWidth() / 2 + 40, summaryY + 7);
+            doc.text(`${topCategory[0]} (${numberFormat(topCategory[1])})`, doc.internal.pageSize.getWidth() / 2 + 40, summaryY + 14);
+
+
+            // Add Table
+            doc.autoTable({
+                head: [['Date', 'Title', 'Category', 'Amount (INR)']],
+                body: dataToExport.map(item => [formatDate(item.date), item.title, item.category, Number(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })]),
+                startY: summaryY + 30,
+                didDrawPage: (data) => {
+                    header(data);
+                    footer(data);
+                },
+                headStyles: { fillColor: [41, 128, 186], textColor: 255, fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [240, 248, 255] },
+                styles: { halign: 'left', cellPadding: 2.5 },
+                columnStyles: {
+                    3: { halign: 'right' }
+                }
+            });
+
+            // Finalize page count
+            if (typeof doc.putTotalPages === 'function') {
+                doc.putTotalPages(totalPagesExp);
+            }
+
+            doc.save(filename);
+            document.body.style.cursor = 'default';
+        }
+
+        function handleDownload() {
+            const period = downloadPeriod.value;
+            const now = new Date();
+            let dataToExport = [], periodTitle = "";
+            if (period === 'weekly') {
+                const lastWeek = new Date(); lastWeek.setDate(now.getDate() - 7);
+                dataToExport = expenses.filter(e => new Date(e.date) >= lastWeek);
+                periodTitle = "This Week";
+            } else if (period === 'monthly') {
+                const month = now.getMonth(), year = now.getFullYear();
+                dataToExport = expenses.filter(e => { const d = new Date(e.date); return d.getMonth() === month && d.getFullYear() === year; });
+                periodTitle = "This Month";
+            } else if (period === 'yearly') {
+                const year = now.getFullYear();
+                dataToExport = expenses.filter(e => new Date(e.date).getFullYear() === year);
+                periodTitle = "This Year";
+            }
+            if (dataToExport.length === 0) { alert("No data available for the selected period."); return; }
+            generatePdfReport(dataToExport, `TALYEXP_${period}_${now.toISOString().slice(0, 10)}.pdf`, periodTitle);
+        }
+
+        function handleYearlyDownload() {
+            const year = prompt("Enter year for report:", new Date().getFullYear());
+            if (!year || isNaN(year)) { alert("Invalid year."); return; }
+            const data = expenses.filter(e => new Date(e.date).getFullYear() === parseInt(year));
+            if (data.length === 0) { alert(`No data for the year ${year}.`); return; }
+            generatePdfReport(data, `talyexp_yearly_${year}.pdf`, `Year ${year}`);
+        }
+
+        function handleQuarterlyDownload() {
+            const year = prompt("Enter year for report:", new Date().getFullYear());
+            if (!year || isNaN(year)) { alert("Invalid year."); return; }
+            const quarter = prompt("Enter quarter (1-4):");
+            if (!quarter || !['1', '2', '3', '4'].includes(quarter)) { alert("Invalid quarter."); return; }
+            const q = parseInt(quarter), startMonth = (q - 1) * 3, endMonth = startMonth + 2;
+            const data = expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === parseInt(year) && d.getMonth() >= startMonth && d.getMonth() <= endMonth; });
+            if (data.length === 0) { alert(`No data for Q${q} ${year}.`); return; }
+            generatePdfReport(data, `talyexp_quarterly_Q${q}-${year}.pdf`, `Quarter ${q}, ${year}`);
+        }
+
+        // --- Data Reset ---
+        function checkYearReset() {
+            const oneYear = 31536000000;
+            if (meta.startTs && (Date.now() - meta.startTs) >= oneYear) { resetModal.style.display = 'flex'; return true; }
+            return false;
+        }
+
+        async function handleFullReset() {
+            if (confirm('DANGER! This will permanently delete all your data. Are you sure?')) {
+                const password = prompt("To confirm this action, please enter your login password:");
+                if (!password) {
+                    // User cancelled the prompt or entered nothing
+                    alert("Password not entered. Reset cancelled.");
+                    return;
+                }
+
+                const user = sessionStorage.getItem(SESSION_KEY);
+                if (!user) {
+                    alert('No user session found. Please log in again.');
+                    return;
+                }
+
+                try {
+                    // Step 1: Verify the password by re-using the login endpoint.
+                    const verifyRes = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: user, password: password })
+                    });
+
+                    // If verification fails (e.g., 401 Unauthorized)
+                    if (!verifyRes.ok) {
+                        alert('Invalid credentials. Cannot reset.');
+                        return;
+                    }
+
+                    // Step 2: If verification is successful, inform user and proceed.
+                    alert("Password confirmed. Proceeding with data reset.");
+
+                    const [expRes, incRes, metaRes] = await Promise.all([
+                        fetch(`/api/expenses/user/${user}`, { method: 'DELETE' }),
+                        fetch(`/api/income/user/${user}`, { method: 'DELETE' }),
+                        fetch('/api/meta/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user }) })
+                    ]);
+
+                    if (!expRes.ok || !incRes.ok || !metaRes.ok) {
+                        throw new Error(`Reset failed on the server after password verification.`);
+                    }
+
+                    alert('All your application data has been reset successfully.');
+                    location.reload();
+
+                } catch (err) {
+                    console.error("Reset error:", err);
+                    // Provide a more generic message for other errors (like network issues)
+                    alert(`An error occurred during reset. Please try again.`);
+                }
+            }
+        }
+
+        function handleArchiveAndReset() {
+            const user = sessionStorage.getItem(SESSION_KEY);
+            if (!user) { alert('No user in session'); return; }
+            generatePdfReport(expenses, `talyexp_full_archive_${new Date().toISOString().slice(0, 10)}.pdf`, "Full Data Archive").then(() => {
+                Promise.all([
+                    fetch(`/api/expenses/user/${user}`, { method: 'DELETE' }),
+                    fetch(`/api/income/user/${user}`, { method: 'DELETE' }),
+                    fetch('/api/meta/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user }) })
+                ]).then(async ([a, b, c]) => {
+                    if (!a.ok || !b.ok || !c.ok) throw new Error('Reset failed after archive.');
+                    alert('Archive downloaded and all data has been reset.');
+                    location.reload();
+                }).catch(err => alert(err.message));
+            });
+        }
+
+        // --- Voice Input Logic ---
+        function setupVoiceInput() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { voiceBtn.style.display = 'none'; return; }
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-IN';
+            recognition.interimResults = false;
+            voiceBtn.addEventListener('click', () => { voiceBtn.classList.add('active'); recognition.start(); });
+            recognition.onresult = (event) => parseVoiceCommand(event.results[0][0].transcript.toLowerCase());
+            recognition.onspeechend = () => recognition.stop();
+            recognition.onerror = (event) => console.error('Speech recognition error:', event.error);
+            recognition.onend = () => voiceBtn.classList.remove('active');
+        }
+
+        function parseVoiceCommand(command) {
+            const amountMatch = command.match(/(?:amount|spend|cost)\s+([\d,.]+)/);
+            if (amountMatch) amountEl.value = amountMatch[1].replace(/,/g, '');
+
+            const categories = ['food', 'transport', 'bills', 'shopping', 'entertainment', 'health', 'other'];
+            const categoryMatch = command.match(/category\s+([a-zA-Z]+)/);
+            let category = '';
+            if (categoryMatch && categories.includes(categoryMatch[1])) category = categoryMatch[1];
+            else { for (const cat of categories) { if (command.includes(cat)) { category = cat; break; } } }
+            if (category) categoryEl.value = category.charAt(0).toUpperCase() + category.slice(1);
+
+            const titleMatch = command.match(/title\s+(.+?)(?=\s+amount|\s+category|$)/);
+            if (titleMatch) titleEl.value = titleMatch[1].trim().charAt(0).toUpperCase() + titleMatch[1].trim().slice(1);
+
+            if (command.includes('today')) dateEl.value = new Date().toISOString().slice(0, 10);
+            else if (command.includes('yesterday')) {
+                const d = new Date(); d.setDate(d.getDate() - 1);
+                dateEl.value = d.toISOString().slice(0, 10);
+            }
+            if (command.match(/submit|add|save/) && titleEl.value && amountEl.value) addBtn.click();
+        }
+
+        // --- Calculator Logic ---
+        function setupCalculator() {
+            const display = document.getElementById('calc-display');
+            const keysContainer = document.querySelector('.calc-keys');
+            let expression = '';
+            if (!display || !keysContainer) return;
+            keysContainer.addEventListener('click', (event) => {
+                const key = event.target.closest('.calc-key');
+                if (!key) return;
+                const keyValue = key.dataset.key;
+                if (keyValue === 'clear') expression = '';
+                else if (keyValue === '=') {
+                    try {
+                        if (/^[0-9+\-*/.() ]+$/.test(expression)) expression = String(eval(expression));
+                        else expression = 'Error';
+                    } catch { expression = 'Error'; }
+                } else {
+                    if (expression === 'Error') expression = '';
+                    expression += keyValue;
+                }
+                display.textContent = expression || '0';
+            });
+        }
+
+        // --- App Initialization ---
+        function init() {
+            dateEl.value = new Date().toISOString().slice(0, 10);
+            authBtn.addEventListener('click', handleAuth);
+            loginPassEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAuth(); });
+            authToggleLink.addEventListener('click', toggleAuthMode);
+            logoutBtn.addEventListener('click', handleLogout);
+            fullResetBtn.addEventListener('click', handleFullReset);
+            homeBtn.addEventListener('click', () => showView('home'));
+            txBtn.addEventListener('click', () => showView('transactions'));
+            chartPeriod.addEventListener('change', renderAllCharts);
+            dateEl.addEventListener('change', renderIncomeForSelectedMonth);
+
+            hamburgerBtn.addEventListener('click', (e) => { e.stopPropagation(); navLinks.classList.toggle('active'); });
+            document.addEventListener('click', (e) => { if (!navLinks.contains(e.target) && !hamburgerBtn.contains(e.target)) navLinks.classList.remove('active'); });
+
+            addBtn.addEventListener('click', async () => {
+                const t = titleEl.value.trim(), a = parseFloat(amountEl.value || 0), d = dateEl.value, c = categoryEl.value.trim() || 'Other';
+                if (!t || !a || !d) { alert('Please enter title, amount, and date.'); return; }
+                try {
+                    const res = await fetch('/api/expenses', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user: sessionStorage.getItem(SESSION_KEY), title: t, amount: a, date: d, category: c })
+                    });
+                    if (!res.ok) throw new Error('Failed to add expense');
+                    await loadDataAndRender();
+                    resetForm();
+                } catch (err) { alert(err.message); }
+            });
+
+            updateBtn.addEventListener('click', async () => {
+                const t = titleEl.value.trim(), a = parseFloat(amountEl.value || 0), d = dateEl.value, c = categoryEl.value.trim() || 'Other';
+                if (!t || !a || !d || !editingId) { alert('Please fill all fields.'); return; }
+                try {
+                    const res = await fetch(`/api/expenses/${editingId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title: t, amount: a, date: d, category: c })
+                    });
+                    if (!res.ok) throw new Error('Failed to update expense');
+                    await loadDataAndRender();
+                    resetForm();
+                } catch (err) { alert(err.message); }
+            });
+
+            resetBtn.addEventListener('click', resetForm);
+            txSearch.addEventListener('input', renderTransactions);
+
+            saveIncomeBtn.addEventListener('click', async () => {
+                const selectedDateStr = dateEl.value;
+                if (!selectedDateStr) { alert('Please select a date.'); return; }
+                const monthKey = selectedDateStr.slice(0, 7);
+                const incomeValue = Number(monthlyIncomeEl.value || 0);
+                try {
+                    const res = await fetch('/api/income', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user: sessionStorage.getItem(SESSION_KEY), monthKey, income: incomeValue })
+                    });
+                    if (!res.ok) throw new Error('Failed to save income');
+                    monthlyIncomes[monthKey] = incomeValue;
+                    renderIncomeForSelectedMonth();
+                    renderAllCharts();
+                    alert(`Income saved for ${new Date(monthKey + '-02').toLocaleString('default', { month: 'long', year: 'numeric' })}.`);
+                } catch (err) { alert(err.message); }
+            });
+
+            downloadBtn.addEventListener('click', handleDownload);
+            downloadArchiveBtn.addEventListener('click', handleArchiveAndReset);
+            closeModalBtn.addEventListener('click', () => txModal.style.display = 'none');
+            txModal.addEventListener('click', (e) => { if (e.target === txModal) txModal.style.display = 'none'; });
+            downloadYearlyBtn.addEventListener('click', handleYearlyDownload);
+            downloadQuarterlyBtn.addEventListener('click', handleQuarterlyDownload);
+            calculatorBtn.addEventListener('click', () => { calculatorModal.style.display = 'flex'; });
+            calculatorModal.addEventListener('click', (e) => { if (e.target === calculatorModal) calculatorModal.style.display = 'none'; });
+
+            setupCalculator();
+            setupVoiceInput();
+
+            setTimeout(() => {
+                splashScreen.style.opacity = '0';
+                setTimeout(async () => {
+                    splashScreen.style.display = 'none';
+                    if (isLoggedIn()) {
+                        appContainer.style.display = 'flex';
+                        await loadDataAndRender();
+                    } else {
+                        loginScreen.style.display = 'flex';
+                    }
+                }, 500);
+            }, 1500);
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

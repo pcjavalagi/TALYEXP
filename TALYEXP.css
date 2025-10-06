@@ -566,7 +566,7 @@
             width: 100%;
             text-align: left;
             position: relative;
-            bottom: 150px;
+            bottom: 120px;
         }
 
         .tx-modal-header {
@@ -815,4 +815,5 @@ footer {
     background: var(--glass);
     border-radius: 14px;
     border-top: 1px solid rgba(255, 255, 255, 0.04);
+
 }

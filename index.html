@@ -856,6 +856,7 @@
                 head: [['Date', 'Title', 'Category', 'Amount (INR)']],
                 body: dataToExport.map(item => [formatDate(item.date), item.title, item.category, Number(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })]),
                 startY: summaryY + 30,
+                margin: { top: 35 },
                 didDrawPage: (data) => {
                     header(data);
                     footer(data);

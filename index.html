@@ -73,6 +73,7 @@
                     <select id="downloadPeriod" class="search-input small">
                         <option value="weekly">This week</option>
                         <option value="monthly">This Month</option>
+                        <option value="prev_monthly">Previous Month</option>
                         <option value="yearly">This year</option>
                     </select>
                     <button id="downloadBtn" class="btn small">Download Report</button>
@@ -270,6 +271,8 @@
     <script>
         // --- App State & Constants ---
         const SESSION_KEY = 'talyexp_v1:session';
+        // UPDATE: Define the category to exclude from analysis
+        const EXCLUDE_CATEGORY = 'PG Rent';
         let expenses = [];
         let groupedExpenses = {};
         let meta = { startTs: Date.now() };
@@ -461,13 +464,15 @@
 
         // --- Rendering ---
         function renderHome() {
-            const total = expenses.reduce((s, x) => s + Number(x.amount), 0);
+            // UPDATE: Exclude EXCLUDE_CATEGORY from calculations
+            const analysisExpenses = expenses.filter(e => e.category !== EXCLUDE_CATEGORY);
+            const total = analysisExpenses.reduce((s, x) => s + Number(x.amount), 0);
             totalAll.textContent = numberFormat(total);
             const today = new Date();
             const ym = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-            const monthTotal = expenses.filter(e => e.date.startsWith(ym)).reduce((s, x) => s + Number(x.amount), 0);
+            const monthTotal = analysisExpenses.filter(e => e.date.startsWith(ym)).reduce((s, x) => s + Number(x.amount), 0);
             totalMonth.textContent = numberFormat(monthTotal);
-            countTx.textContent = expenses.length;
+            countTx.textContent = analysisExpenses.length; // Count only analysis-relevant transactions
             renderIncomeForSelectedMonth();
             renderAllCharts();
             generateSmartInsights();
@@ -479,7 +484,10 @@
             const monthKey = selectedDateStr.slice(0, 7);
             const incomeForMonth = monthlyIncomes[monthKey] || 0;
             monthlyIncomeEl.value = incomeForMonth > 0 ? incomeForMonth : '';
-            const monthTotal = expenses.filter(e => e.date.startsWith(monthKey)).reduce((sum, e) => sum + Number(e.amount), 0);
+            // UPDATE: Exclude EXCLUDE_CATEGORY from remaining calculation
+            const monthTotal = expenses
+                .filter(e => e.date.startsWith(monthKey) && e.category !== EXCLUDE_CATEGORY)
+                .reduce((sum, e) => sum + Number(e.amount), 0);
             const remaining = Math.max(0, incomeForMonth - monthTotal);
             remainingEl.textContent = numberFormat(remaining);
         }
@@ -503,11 +511,10 @@
                 return;
             }
 
-            // ✅ Group by stable key YYYY-MM (independent of locale)
+            // Grouping for the list view - this SHOULD include all expenses
             groupedExpenses = list.reduce((acc, tx) => {
                 let d = new Date(tx.date);
                 if (isNaN(d)) {
-                    // handle weird string dates or Mongo ISO format
                     try {
                         d = new Date(String(tx.date).split('T')[0]);
                     } catch {
@@ -521,7 +528,7 @@
 
                 if (!acc[monthKey]) acc[monthKey] = { label, transactions: [], total: 0 };
                 acc[monthKey].transactions.push(tx);
-                acc[monthKey].total += Number(tx.amount) || 0;
+                acc[monthKey].total += Number(tx.amount) || 0; // Total here includes ALL expenses for the month
                 return acc;
             }, {});
 
@@ -536,7 +543,6 @@
             <h3>${group.label}</h3>
             <p>Total: <strong>${numberFormat(group.total)}</strong></p>
             <p>${group.transactions.length} Transactions</p>`;
-                // ✅ Click event uses stable key
                 card.onclick = () => showMonthDetails(key);
                 txGrid.appendChild(card);
             }
@@ -627,18 +633,21 @@
         function getFilteredExpenses() {
             const period = chartPeriod.value;
             const now = new Date();
-            if (period === 'all') return expenses;
-            if (period === 'yearly') return expenses.filter(e => new Date(e.date).getFullYear() === now.getFullYear());
-            if (period === 'monthly') return expenses.filter(e => {
+            // UPDATE: Filter out EXCLUDE_CATEGORY from the start
+            const filteredBase = expenses.filter(e => e.category !== EXCLUDE_CATEGORY);
+
+            if (period === 'all') return filteredBase;
+            if (period === 'yearly') return filteredBase.filter(e => new Date(e.date).getFullYear() === now.getFullYear());
+            if (period === 'monthly') return filteredBase.filter(e => {
                 const d = new Date(e.date);
                 return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
             });
             if (period === 'weekly') {
                 const lastWeek = new Date();
                 lastWeek.setDate(now.getDate() - 7);
-                return expenses.filter(e => new Date(e.date) >= lastWeek);
+                return filteredBase.filter(e => new Date(e.date) >= lastWeek);
             }
-            return expenses;
+            return filteredBase; // Default
         }
 
         function renderAllCharts() {
@@ -662,7 +671,10 @@
                 const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                 const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
                 labels.push(d.toLocaleString('default', { month: 'short' }));
-                const sum = expenses.filter(e => e.date.startsWith(key)).reduce((a, b) => a + Number(b.amount), 0);
+                // UPDATE: Exclude EXCLUDE_CATEGORY from sum
+                const sum = expenses
+                    .filter(e => e.date.startsWith(key) && e.category !== EXCLUDE_CATEGORY)
+                    .reduce((a, b) => a + Number(b.amount), 0);
                 dataPoints.push(sum);
             }
             const ctx = document.getElementById('monthlyBarChart').getContext('2d');
@@ -673,7 +685,7 @@
         }
 
         function renderCategoryBarChart() {
-            const data = getFilteredExpenses();
+            const data = getFilteredExpenses(); // This data is already filtered
             const categoryTotals = data.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
             const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
             const colors = ["#60a5fa", "#fbbf24", "#fb7185", "#a78bfa", "#f87171", "#6ee7b7", "#f472b6"];
@@ -681,14 +693,14 @@
         }
 
         function renderPieChart() {
-            const data = getFilteredExpenses();
+            const data = getFilteredExpenses(); // This data is already filtered
             const categoryTotals = data.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
             const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
             createChart('pieChart', 'pie', { labels: sorted.map(item => item[0]), datasets: [{ data: sorted.map(item => item[1]), backgroundColor: ["#6ee7b7", "#60a5fa", "#fbbf24", "#fb7185", "#a78bfa", "#f472b6", "#f87171"] }] }, { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: '#FFFFFF' } } } });
         }
 
         function renderDonutChart() {
-            const data = getFilteredExpenses();
+            const data = getFilteredExpenses(); // This data is already filtered
             const spent = data.reduce((s, x) => s + Number(x.amount), 0);
             let budget = 0;
             const now = new Date();
@@ -707,7 +719,7 @@
         }
 
         function renderCashFlowTrendChart() {
-            const data = getFilteredExpenses();
+            const data = getFilteredExpenses(); // This data is already filtered
             let labels = [], dataPoints = [];
             if (data.length === 0) {
                 createChart('cashFlowTrendChart', 'line', { labels: [], datasets: [] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Cash Flow Trend', color: '#FFFFFF' } } });
@@ -755,8 +767,11 @@
             const now = new Date(), currentMonth = now.getMonth(), currentYear = now.getFullYear();
             const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
             const prevMonth = prevMonthDate.getMonth(), prevYear = prevMonthDate.getFullYear();
-            const currentMonthExpenses = expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === currentYear && d.getMonth() === currentMonth; });
-            const prevMonthExpenses = expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === prevYear && d.getMonth() === prevMonth; });
+
+            // UPDATE: Exclude EXCLUDE_CATEGORY from insights
+            const currentMonthExpenses = expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === currentYear && d.getMonth() === currentMonth && e.category !== EXCLUDE_CATEGORY; });
+            const prevMonthExpenses = expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === prevYear && d.getMonth() === prevMonth && e.category !== EXCLUDE_CATEGORY; });
+
             if (currentMonthExpenses.length < 2 || prevMonthExpenses.length < 2) { insightsContainer.innerHTML = '<p class="subtitle">Not enough data for comparison.</p>'; return; }
             const currentCategoryTotals = currentMonthExpenses.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
             const prevCategoryTotals = prevMonthExpenses.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
@@ -824,6 +839,7 @@
             };
 
             // Calculate Summary
+            // Note: dataToExport is already filtered for EXCLUDE_CATEGORY by the calling function
             const total = dataToExport.reduce((sum, item) => sum + Number(item.amount), 0);
             const count = dataToExport.length;
             const average = count > 0 ? total / count : 0;
@@ -882,17 +898,24 @@
             const period = downloadPeriod.value;
             const now = new Date();
             let dataToExport = [], periodTitle = "";
+            // UPDATE: All filters now also exclude EXCLUDE_CATEGORY
             if (period === 'weekly') {
                 const lastWeek = new Date(); lastWeek.setDate(now.getDate() - 7);
-                dataToExport = expenses.filter(e => new Date(e.date) >= lastWeek);
+                dataToExport = expenses.filter(e => new Date(e.date) >= lastWeek && e.category !== EXCLUDE_CATEGORY);
                 periodTitle = "This Week";
             } else if (period === 'monthly') {
                 const month = now.getMonth(), year = now.getFullYear();
-                dataToExport = expenses.filter(e => { const d = new Date(e.date); return d.getMonth() === month && d.getFullYear() === year; });
+                dataToExport = expenses.filter(e => { const d = new Date(e.date); return d.getMonth() === month && d.getFullYear() === year && e.category !== EXCLUDE_CATEGORY; });
                 periodTitle = "This Month";
+            } else if (period === 'prev_monthly') {
+                // UPDATE: Logic for previous month
+                const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                const month = prevMonthDate.getMonth(), year = prevMonthDate.getFullYear();
+                dataToExport = expenses.filter(e => { const d = new Date(e.date); return d.getMonth() === month && d.getFullYear() === year && e.category !== EXCLUDE_CATEGORY; });
+                periodTitle = "Previous Month";
             } else if (period === 'yearly') {
                 const year = now.getFullYear();
-                dataToExport = expenses.filter(e => new Date(e.date).getFullYear() === year);
+                dataToExport = expenses.filter(e => new Date(e.date).getFullYear() === year && e.category !== EXCLUDE_CATEGORY);
                 periodTitle = "This Year";
             }
             if (dataToExport.length === 0) { alert("No data available for the selected period."); return; }
@@ -902,7 +925,8 @@
         function handleYearlyDownload() {
             const year = prompt("Enter year for report:", new Date().getFullYear());
             if (!year || isNaN(year)) { alert("Invalid year."); return; }
-            const data = expenses.filter(e => new Date(e.date).getFullYear() === parseInt(year));
+            // UPDATE: Exclude EXCLUDE_CATEGORY
+            const data = expenses.filter(e => new Date(e.date).getFullYear() === parseInt(year) && e.category !== EXCLUDE_CATEGORY);
             if (data.length === 0) { alert(`No data for the year ${year}.`); return; }
             generatePdfReport(data, `talyexp_yearly_${year}.pdf`, `Year ${year}`);
         }
@@ -913,7 +937,8 @@
             const quarter = prompt("Enter quarter (1-4):");
             if (!quarter || !['1', '2', '3', '4'].includes(quarter)) { alert("Invalid quarter."); return; }
             const q = parseInt(quarter), startMonth = (q - 1) * 3, endMonth = startMonth + 2;
-            const data = expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === parseInt(year) && d.getMonth() >= startMonth && d.getMonth() <= endMonth; });
+            // UPDATE: Exclude EXCLUDE_CATEGORY
+            const data = expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === parseInt(year) && d.getMonth() >= startMonth && d.getMonth() <= endMonth && e.category !== EXCLUDE_CATEGORY; });
             if (data.length === 0) { alert(`No data for Q${q} ${year}.`); return; }
             generatePdfReport(data, `talyexp_quarterly_Q${q}-${year}.pdf`, `Quarter ${q}, ${year}`);
         }

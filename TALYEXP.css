@@ -1,4 +1,4 @@
- :root {
+:root {
             --bg: #0f1724;
             --card: #0b1220;
             --muted: #9aa4b2;
@@ -773,9 +773,37 @@
             .charts-grid {
                 grid-template-columns: 1fr;
             }
+
+            /* UPDATE: Mobile modal styles */
+            .tx-modal-content {
+                bottom: auto; /* Remove the offset */
+                width: 95%;
+                max-width: 95%;
+                margin-top: 5vh; /* Add some top margin */
+            }
+
+            .tx-modal-body {
+                max-height: 60vh; /* Adjust height for mobile viewport */
+            }
+
+            .expense-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .expense-item .controls {
+                margin-left: auto; /* Push controls to the right */
+            }
         }
 
         @media (max-width: 480px) {
+            /* UPDATE: Mobile login box padding */
+            .login-box {
+                padding: 2rem 1.5rem;
+                max-width: 95%;
+            }
+
             .form-row {
                 flex-direction: column;
                 gap: 14px;

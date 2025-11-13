@@ -16,13 +16,21 @@
             margin: 0;
             background-color: #071024;
             color: #e6eef6;
-            min-height: 100vh;
+            height: 100vh; /* --- UPDATE: Was min-height --- */
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 1rem;
-            overflow: hidden;
+            overflow: auto; /* --- UPDATE: Changed to auto for mobile-first --- */
         }
+
+        /* --- UPDATE: Apply overflow:hidden only on desktop --- */
+        @media (min-width: 981px) {
+            body {
+                overflow: hidden;
+            }
+        }
+
 
         /* Splash Screen Styles */
         #splash-screen {
@@ -167,8 +175,8 @@
         .app-wrap {
             width: 100%;
             max-width: 1700px;
-            height: 100vh;
-            max-height: 700px;
+            height: 100%; /* --- UPDATE: Was 100vh --- */
+            max-height: 900px; /* --- UPDATE: Increased max-height --- */
             display: none;
             flex-direction: column;
         }
@@ -182,7 +190,8 @@
 
         .app-grid {
             display: grid;
-            grid-template-columns: 420px 1fr;
+            /* --- UPDATE: More fluid grid --- */
+            grid-template-columns: minmax(350px, 420px) 1fr;
             gap: 20px;
             height: 100%;
         }
@@ -202,7 +211,9 @@
         }
 
         #home-view,
-        #transactions-view {
+        #transactions-view,
+        #savings-view,
+        #returns-view { /* --- UPDATE: Added returns-view --- */
             height: 100%;
         }
 
@@ -212,19 +223,20 @@
             gap: 12px;
         }
 
+        /* --- UPDATE: Better header layout --- */
         .brand>div:last-child {
             display: flex;
-            align-items: baseline;
-            gap: 12px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
         }
 
         #user-greeting {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 500;
-            position: relative;
-            top: 22px;
-            right: 84px;
+            position: static; /* --- UPDATE: Removed relative positioning --- */
         }
+
 
         .logo {
             width: 48px;
@@ -272,9 +284,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            bottom: 6px;
-
+            /* --- UPDATE: Removed relative positioning --- */
         }
 
         #nav-links {
@@ -327,6 +337,7 @@
         input[type=text],
         input[type=number],
         input[type=date],
+        input[type=month],
         select {
             width: 100%;
             padding: 10px;
@@ -337,9 +348,13 @@
             outline: none;
         }
         input[type=date],
+        input[type=month],
         select {
             background-color:#6ee7b7;
             color: black;
+            -webkit-appearance: none; /* --- UPDATE: Better appearance --- */
+            -moz-appearance: none;
+            appearance: none;
         }
         select {
             background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0.02));
@@ -422,9 +437,13 @@
         }
 
         /* Transactions Page */
-        #transactions-view {
-            display: none;
-        }
+       /* Page Views */
+#transactions-view,
+#savings-view,
+#returns-view,
+#payables-view { /* 👈 ADD THESE LINES */
+    display: none;
+}
 
         #chartPeriod {
             color: rgb(19, 126, 114);
@@ -446,7 +465,6 @@
             padding-right: 6px;
         }
 
-        /* MODIFICATION: Styles for monthly grid and cards */
         .tx-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -560,13 +578,12 @@
             max-width: 450px;
         }
 
-        /* MODIFICATION: Styles for transaction detail modal */
         .tx-modal-content {
             max-width: 1400px;
             width: 100%;
             text-align: left;
             position: relative;
-            bottom: 120px;
+            /* --- UPDATE: Removed bottom positioning --- */
         }
 
         .tx-modal-header {
@@ -603,7 +620,7 @@
             flex-shrink: 0;
         }
 
-        /* --- NEW: Smart Insights --- */
+        /* --- Smart Insights --- */
         #smart-insights h3 {
             margin-top: 0;
         }
@@ -624,7 +641,12 @@
             border-color: var(--danger);
         }
 
-        /* --- NEW: Calculator Modal --- */
+        #smart-insights p.info {
+            border-color: #60a5fa;
+        }
+
+
+        /* --- Calculator Modal --- */
         #calculator-modal {
             align-items: flex-start;
         }
@@ -704,24 +726,19 @@
         /* Target the entire scrollbar */
         ::-webkit-scrollbar {
             width: 10px;
-            /* width of vertical scrollbar */
             height: 10px;
-            /* height of horizontal scrollbar */
         }
 
-        /* Background of the scrollbar track */
         ::-webkit-scrollbar-track {
             background: #1e1e1e;
             border-radius: 10px;
         }
 
-        /* Scrollbar thumb (the draggable handle) */
         ::-webkit-scrollbar-thumb {
             background: #6ee7b7;
             border-radius: 10px;
         }
 
-        /* On hover */
         ::-webkit-scrollbar-thumb:hover {
             background: #388e3c;
         }
@@ -729,6 +746,49 @@
         #cashFlowTrendChart{
             height: 300px;
         }
+
+        .saving-month-group {
+            margin-bottom: 20px;
+        }
+        .saving-month-header {
+            color: var(--accent);
+            border-bottom: 1px solid var(--glass);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .saving-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--glass);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .saving-item .amount {
+            color: #a78bfa;
+        }
+
+        /* --- NEW: Form Toggle Buttons --- */
+        .form-toggle-btn {
+            flex: 1;
+            border-radius: 8px 8px 0 0 !important;
+            border-bottom: none !important;
+            background: transparent;
+            border: 1px solid var(--glass);
+            border-bottom-color: var(--glass) !important;
+            color: var(--muted);
+            padding: 8px;
+            font-size: 13px;
+        }
+        .form-toggle-btn.active {
+            background: var(--glass);
+            color: var(--accent);
+            border-bottom-color: var(--card) !important; /* Hides border */
+            position: relative;
+            top: 1px;
+        }
+
         /* Responsive Design */
         @media (max-width:980px) {
             body {
@@ -770,20 +830,20 @@
                 justify-content: flex-end;
             }
 
+            /* --- UPDATE: Charts 1-col --- */
             .charts-grid {
                 grid-template-columns: 1fr;
             }
 
-            /* UPDATE: Mobile modal styles */
             .tx-modal-content {
-                bottom: auto; /* Remove the offset */
+                bottom: auto;
                 width: 95%;
                 max-width: 95%;
-                margin-top: 5vh; /* Add some top margin */
+                margin-top: 5vh;
             }
 
             .tx-modal-body {
-                max-height: 60vh; /* Adjust height for mobile viewport */
+                max-height: 60vh;
             }
 
             .expense-item {
@@ -793,12 +853,11 @@
             }
 
             .expense-item .controls {
-                margin-left: auto; /* Push controls to the right */
+                margin-left: auto;
             }
         }
 
         @media (max-width: 480px) {
-            /* UPDATE: Mobile login box padding */
             .login-box {
                 padding: 2rem 1.5rem;
                 max-width: 95%;
@@ -820,6 +879,20 @@
             .brand h1 {
                 font-size: 16px;
             }
+            /* --- UPDATE: Further header fixes --- */
+            .brand {
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: center;
+            }
+            .header-right {
+                gap: 0.5rem;
+            }
+            .top-actions {
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: flex-end;
+            }
 
             .logo {
                 width: 40px;
@@ -827,21 +900,21 @@
             }
         }
 
-footer {
-    grid-column: 1/-1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-    flex-shrink: 0;
-    padding: 12px;
-    height: 50px;
-    text-align: center;
-    justify-content: center; 
-    color: var(--muted);
-    font-size: 14px;
-    background: var(--glass);
-    border-radius: 14px;
-    border-top: 1px solid rgba(255, 255, 255, 0.04);
-
-}
+        footer {
+            grid-column: 1/-1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            flex-shrink: 0;
+            padding: 12px;
+            height: 50px;
+            text-align: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 14px;
+            background: var(--glass);
+            border-radius: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        
+        }

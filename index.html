@@ -32,7 +32,7 @@
                     </svg></span>
                 <input id="loginUser" class="input" placeholder="Username" />
             </div>
-            <div class="input-group">
+            <div class="input-group" id="pass-group">
                 <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                         fill="currentColor" viewBox="0 0 256 256">
                         <path
@@ -55,6 +55,9 @@
                 <span id="auth-toggle-text">Don't have an account?</span>
                 <a id="auth-toggle-link">Sign Up</a>
             </div>
+            <div class="auth-toggle" style="margin-top: 10px;">
+                <a id="forgot-pass-link">Forgot Password?</a>
+            </div>
         </div>
     </div>
 
@@ -70,12 +73,7 @@
 
             <div class="header-right">
                 <div class="top-actions" style="display:flex; gap: 8px; align-items:center;">
-                    <select id="downloadPeriod" class="search-input small">
-                        <option value="weekly">This week</option>
-                        <option value="monthly">This Month</option>
-                        <option value="prev_monthly">Previous Month</option>
-                        <option value="yearly">This year</option>
-                    </select>
+                    <select id="downloadPeriod" class="search-input small" style="width: 140px;"></select>
                     <button id="downloadBtn" class="btn small">Download Report</button>
                 </div>
                 <nav class="main-nav">
@@ -87,7 +85,10 @@
                     <div id="nav-links">
                         <button id="homeBtn" class="btn small active">Home</button>
                         <button id="txBtn" class="btn small ghost">Transactions</button>
-                        <button id="fullResetBtn" class="btn small danger">Reset App</button>
+                        <button id="savingsBtn" class="btn small ghost">Savings</button>
+                        <button id="returnsBtn" class="btn small ghost">Returns</button>
+                        <button id="payablesBtn" class="btn small ghost">Payables</button> <button id="fullResetBtn"
+                            class="btn small danger">Reset App</button>
                         <button id="logoutBtn" class="btn ghost small">Logout</button>
                         <button id="calculatorBtn" class="btn ghost small" title="Calculator" style="padding: 6px 8px;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -127,7 +128,8 @@
                         </div>
                         <div class="card" style="flex-shrink: 0;">
                             <div>
-                                <label for="title">Title</label>
+                                <h4>Add your expensis:</h4>
+                                <label for="title">Title (Expense)</label>
                                 <input id="title" class="input" type="text" placeholder="e.g., Dinner with friends" />
                             </div>
                             <div class="form-row" style="margin-top: 14px;">
@@ -156,6 +158,82 @@
                                 <button id="resetBtn" class="btn ghost">Reset</button>
                             </div>
                         </div>
+
+                        <div class="card" style="flex-shrink: 0;">
+                            <div>
+                                <h4>Add your savings:</h4>
+                                <label for="saving-title">Title (Saving)</label>
+                                <input id="saving-title" class="input" type="text" placeholder="e.g., Mutual Fund" />
+                            </div>
+                            <div class="form-row" style="margin-top: 14px;">
+                                <div style="flex:1"><label for="saving-amount">Amount (₹)</label><input
+                                        id="saving-amount" class="input" type="number" placeholder="0.00" /></div>
+                                <div style="width:150px"><label for="saving-month">Month</label><input id="saving-month"
+                                        class="input" type="month" /></div>
+                            </div>
+                            <div style="display:flex;gap:10px;margin-top:16px;align-items:center;">
+                                <button id="addSavingBtn" class="btn">Add Saving</button>
+                            </div>
+                        </div>
+
+                        <div class="card" style="flex-shrink: 0;">
+                            <div
+                                style="display: flex; gap: -1px; border-bottom: 1px solid var(--glass); margin-bottom: 16px;">
+                                <button id="toggle-return-form" class="btn form-toggle-btn active">Lent
+                                    (Returns)</button>
+                                <button id="toggle-payable-form" class="btn form-toggle-btn">To Pay (Payables)</button>
+                            </div>
+
+                            <div id="return-form-container">
+                                <h4>Add details of amount lent (Pending Return)</h4>
+                                <label for="return-person">Person's Name (Money given to)</label>
+                                <input id="return-person" class="input" type="text" placeholder="e.g., John Doe" />
+                                <div class="form-row" style="margin-top: 14px;">
+                                    <div style="flex:1">
+                                        <label for="return-amount">Amount (₹)</label>
+                                        <input id="return-amount" class="input" type="number" placeholder="0.00" />
+                                    </div>
+                                    <div style="width:150px">
+                                        <label for="return-date">Date Given</label>
+                                        <input id="return-date" class="input" type="date" />
+                                    </div>
+                                </div>
+                                <div style="margin-top: 14px;">
+                                    <label for="return-mode">Payment Mode</label>
+                                    <input id="return-mode" type="text" class="input" placeholder="e.g., UPI, Cash" />
+                                </div>
+                                <div style="display:flex;gap:10px;margin-top:16px;align-items:center;">
+                                    <button id="addReturnBtn" class="btn">Add Return</button>
+                                    <button id="updateReturnBtn" class="btn ghost" style="display:none">Update
+                                        Return</button>
+                                </div>
+                            </div>
+
+                            <div id="payable-form-container" style="display: none;">
+                                <h4>Add details of amount to be given (Payable)</h4>
+                                <label for="payable-person">Person's Name (Money to be given to)</label>
+                                <input id="payable-person" class="input" type="text" placeholder="e.g., Jane Smith" />
+                                <div class="form-row" style="margin-top: 14px;">
+                                    <div style="flex:1">
+                                        <label for="payable-amount">Amount (₹)</label>
+                                        <input id="payable-amount" class="input" type="number" placeholder="0.00" />
+                                    </div>
+                                    <div style="width:150px">
+                                        <label for="payable-date">Date</label>
+                                        <input id="payable-date" class="input" type="date" />
+                                    </div>
+                                </div>
+                                <div style="margin-top: 14px;">
+                                    <label for="payable-mode">Payment Mode</label>
+                                    <input id="payable-mode" type="text" class="input" placeholder="e.g., UPI, Cash" />
+                                </div>
+                                <div style="display:flex;gap:10px;margin-top:16px;align-items:center;">
+                                    <button id="addPayableBtn" class="btn">Add Payable</button>
+                                    <button id="updatePayableBtn" class="btn ghost" style="display:none">Update
+                                        Payable</button>
+                                </div>
+                            </div>
+                        </div>
                         <div class="card" style="flex-shrink: 0;">
                             <div class="summary">
                                 <div class="stat">
@@ -178,27 +256,23 @@
                             <div
                                 style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom:10px;">
                                 <label for="chartPeriod" class="subtitle" style="margin:0;">Filter Charts:</label>
-                                <select id="chartPeriod" class="search-input small">
-                                    <option value="monthly">This Month</option>
-                                    <option value="weekly">Last 7 Days</option>
-                                    <option value="yearly">This Year</option>
-                                    <option value="all">All Time</option>
-                                </select>
+                                <select id="chartPeriod" class="search-input small" style="width: 140px;"></select>
                             </div>
                             <div class="charts-grid">
                                 <div class="chart-card"><canvas id="monthlyBarChart"></canvas></div>
                                 <div class="chart-card"><canvas id="categoryBarChart"></canvas></div>
                                 <div class="chart-card"><canvas id="pieChart"></canvas></div>
                                 <div class="chart-card"><canvas id="donutChart"></canvas></div>
+                                <div class="chart-card"><canvas id="savingsBarChart"></canvas></div>
+                                <div class="chart-card"><canvas id="cashFlowOverviewChart"></canvas></div>
                             </div><br>
-                            <div class="charts-grid1"></div>
                             <div class="chart-card"><canvas id="cashFlowTrendChart"></canvas></div>
                         </div>
                     </section>
                 </div>
             </div>
 
-            <div id="transactions-view" class="card">
+            <div id="transactions-view" class="card" style="display: none;">
                 <div class="top-bar">
                     <h2 style="margin:0;">Monthly Overview</h2>
                     <div style="display: flex; gap: 8px; align-items: center;">
@@ -210,6 +284,38 @@
 
                 <div id="txListContainer" class="tx-list-container">
                     <div id="txGrid" class="tx-grid"></div>
+                </div>
+            </div>
+
+            <div id="savings-view" class="card" style="display: none;">
+                <div class="top-bar">
+                    <h2 style="margin:0;">Your Savings</h2>
+                </div>
+                <div id="savingsListContainer" class="tx-list-container">
+                    <div id="savingsGrid" class="tx-grid">
+                    </div>
+                </div>
+            </div>
+
+            <div id="returns-view" class="card" style="display: none;">
+                <div class="top-bar">
+                    <h2 style="margin:0;">Pending Returns</h2>
+                    <input id="returnsSearch" class="search-input" placeholder="Search by name..." />
+                </div>
+                <div id="returnsListContainer" class="tx-list-container">
+                    <div id="returnsGrid" class="tx-grid">
+                    </div>
+                </div>
+            </div>
+
+            <div id="payables-view" class="card" style="display: none;">
+                <div class="top-bar">
+                    <h2 style="margin:0;">Upcoming Payables</h2>
+                    <input id="payablesSearch" class="search-input" placeholder="Search by name..." />
+                </div>
+                <div id="payablesListContainer" class="tx-list-container">
+                    <div id="payablesGrid" class="tx-grid">
+                    </div>
                 </div>
             </div>
         </main>
@@ -230,15 +336,6 @@
             </div>
             <div id="tx-modal-body" class="tx-modal-body">
             </div>
-        </div>
-    </div>
-
-    <div id="reset-modal" class="reset-modal">
-        <div class="reset-box">
-            <h2>Data Archive Required</h2>
-            <p>Your expense data is over one year old. To continue, you must download a complete archive. The
-                application will then reset.</p>
-            <button id="downloadArchiveBtn" class="btn">Download Archive & Reset</button>
         </div>
     </div>
 
@@ -266,20 +363,30 @@
             </div>
         </div>
     </div>
-
-
     <script>
         // --- App State & Constants ---
         const SESSION_KEY = 'talyexp_v1:session';
-        // UPDATE: Define the category to exclude from analysis
-        const EXCLUDE_CATEGORY = 'PG Rent';
+        // --- UPDATE: Set EXCLUDE_CATEGORY to empty string to include 'PG Rent' in all totals ---
+        const EXCLUDE_CATEGORY = ''; // Was 'PG Rent'
         let expenses = [];
+        let savings = [];
         let groupedExpenses = {};
+        let groupedSavings = {}; // --- UPDATE: Added for new UI ---
+
+        // --- NEW: Pending Returns State ---
+        let returns = [];
+        let groupedReturns = {};
+        let editingReturnId = null;
+
+        // --- NEW: Payables State ---
+        let payables = [];
+        let editingPayableId = null;
+
         let meta = { startTs: Date.now() };
         let editingId = null;
         let monthlyIncomes = {};
         let chartInstances = {};
-        let isLoginMode = true;
+        let authMode = 'login'; // --- UPDATE: 'login', 'register', 'reset' ---
 
         // --- DOM Elements ---
         const splashScreen = document.getElementById('splash-screen');
@@ -290,8 +397,15 @@
         const fullResetBtn = document.getElementById('fullResetBtn');
         const homeBtn = document.getElementById('homeBtn');
         const txBtn = document.getElementById('txBtn');
+        const savingsBtn = document.getElementById('savingsBtn');
+        const returnsBtn = document.getElementById('returnsBtn'); // --- NEW ---
+        const payablesBtn = document.getElementById('payablesBtn'); // 👈 ADDED
         const homeView = document.getElementById('home-view');
         const transactionsView = document.getElementById('transactions-view');
+        const savingsView = document.getElementById('savings-view');
+        const returnsView = document.getElementById('returns-view'); // --- NEW ---
+        const payablesView = document.getElementById('payables-view'); // 👈 ADDED
+
         const titleEl = document.getElementById('title');
         const amountEl = document.getElementById('amount');
         const dateEl = document.getElementById('date');
@@ -299,6 +413,38 @@
         const addBtn = document.getElementById('addBtn');
         const updateBtn = document.getElementById('updateBtn');
         const resetBtn = document.getElementById('resetBtn');
+
+        const savingTitleEl = document.getElementById('saving-title');
+        const savingAmountEl = document.getElementById('saving-amount');
+        const savingMonthEl = document.getElementById('saving-month');
+        const addSavingBtn = document.getElementById('addSavingBtn');
+        const savingsGrid = document.getElementById('savingsGrid'); // --- UPDATE ---
+
+        // --- NEW: Pending Return DOM Elements ---
+        const returnPersonEl = document.getElementById('return-person');
+        const returnAmountEl = document.getElementById('return-amount');
+        const returnDateEl = document.getElementById('return-date');
+        const returnModeEl = document.getElementById('return-mode');
+        const addReturnBtn = document.getElementById('addReturnBtn');
+        const updateReturnBtn = document.getElementById('updateReturnBtn');
+        const returnsGrid = document.getElementById('returnsGrid');
+        const returnsSearch = document.getElementById('returnsSearch');
+
+        // --- NEW: Payable DOM Elements (from new HTML) ---
+        const payablePersonEl = document.getElementById('payable-person');
+        const payableAmountEl = document.getElementById('payable-amount');
+        const payableDateEl = document.getElementById('payable-date');
+        const payableModeEl = document.getElementById('payable-mode');
+        const addPayableBtn = document.getElementById('addPayableBtn');
+        const updatePayableBtn = document.getElementById('updatePayableBtn'); // 👈 ADDED
+        const toggleReturnBtn = document.getElementById('toggle-return-form');
+        const togglePayableBtn = document.getElementById('toggle-payable-form');
+        const returnFormContainer = document.getElementById('return-form-container');
+        const payableFormContainer = document.getElementById('payable-form-container');
+        const payablesGrid = document.getElementById('payablesGrid'); // 👈 ADDED
+        const payablesSearch = document.getElementById('payablesSearch'); // 👈 ADDED
+
+
         const totalAll = document.getElementById('totalAll');
         const totalMonth = document.getElementById('totalMonth');
         const countTx = document.getElementById('countTx');
@@ -309,9 +455,11 @@
         const saveIncomeBtn = document.getElementById('saveIncome');
         const remainingEl = document.getElementById('remaining');
         const txSearch = document.getElementById('txSearch');
-        const resetModal = document.getElementById('reset-modal');
-        const downloadArchiveBtn = document.getElementById('downloadArchiveBtn');
+        // const resetModal = document.getElementById('reset-modal'); // --- UPDATE: Modal removed ---
+        // const downloadArchiveBtn = document.getElementById('downloadArchiveBtn'); // --- UPDATE: Button removed ---
         const authToggleLink = document.getElementById('auth-toggle-link');
+        const forgotPassLink = document.getElementById('forgot-pass-link'); // --- UPDATE ---
+        const passGroup = document.getElementById('pass-group'); // --- UPDATE ---
         const confirmPassGroup = document.getElementById('confirm-pass-group');
         const loginUserEl = document.getElementById('loginUser');
         const loginPassEl = document.getElementById('loginPass');
@@ -332,10 +480,9 @@
 
         // --- Utility Functions ---
         const numberFormat = (n) => Number(n).toLocaleString('en-IN', {
-            style: 'decimal',  // <--- CHANGE THIS TO 'decimal'
+            style: 'decimal',
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-            // Remove the currency: 'INR' option
         });
         const formatDate = (d) => new Date(d).toLocaleDateString('en-GB');
         const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -353,12 +500,13 @@
         async function handleAuth() {
             const username = loginUserEl.value.trim().toLowerCase();
             const password = loginPassEl.value;
-            if (!username || !password) {
-                alert('Username and password cannot be empty.');
+            if (!username) {
+                alert('Username cannot be empty.');
                 return;
             }
             try {
-                if (isLoginMode) {
+                if (authMode === 'login') {
+                    if (!password) { alert('Password cannot be empty.'); return; }
                     const res = await fetch('/api/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -370,7 +518,7 @@
                     loginScreen.style.display = 'none';
                     appContainer.style.display = 'flex';
                     await loadDataAndRender();
-                } else {
+                } else if (authMode === 'register') {
                     const confirmPass = confirmPassEl.value;
                     if (password !== confirmPass) { alert('Passwords do not match.'); return; }
                     if (!validatePassword(password)) return;
@@ -382,7 +530,20 @@
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error || 'Registration failed');
                     alert('Account created successfully! Please sign in.');
-                    toggleAuthMode();
+                    toggleAuthMode('login');
+                } else if (authMode === 'reset') { // --- UPDATE: Handle reset ---
+                    const newPassword = confirmPassEl.value;
+                    if (!validatePassword(newPassword)) return;
+                    if (!confirm('Are you sure you want to reset the password for this user?')) return;
+                    const res = await fetch('/api/reset-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, newPassword })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Password reset failed');
+                    alert('Password reset successfully! Please sign in with your new password.');
+                    toggleAuthMode('login');
                 }
             } catch (err) {
                 alert(`Authentication Error: ${err.message}`);
@@ -394,19 +555,46 @@
             location.reload();
         }
 
-        function toggleAuthMode() {
-            isLoginMode = !isLoginMode;
+        // --- UPDATE: Toggle auth mode logic ---
+        function toggleAuthMode(mode) {
+            authMode = mode;
             loginUserEl.value = loginPassEl.value = confirmPassEl.value = '';
-            if (isLoginMode) {
-                document.getElementById('auth-title').textContent = 'Welcome Back';
+            const authTitle = document.getElementById('auth-title');
+            const authSubtitle = document.getElementById('auth-subtitle');
+
+            // --- FIX: Use auth-toggle-text and auth-toggle-link ---
+            const authToggleText = document.getElementById('auth-toggle-text');
+            const authToggleLink = document.getElementById('auth-toggle-link');
+
+            if (authMode === 'login') {
+                authTitle.textContent = 'Welcome Back';
+                authSubtitle.textContent = 'Enter your credentials to access your dashboard';
                 authBtn.textContent = 'Secure Sign In';
+                passGroup.style.display = 'block';
                 confirmPassGroup.style.display = 'none';
+                authToggleText.textContent = "Don't have an account? ";
                 authToggleLink.textContent = 'Sign Up';
-            } else {
-                document.getElementById('auth-title').textContent = 'Create Account';
+                forgotPassLink.style.display = 'block';
+            } else if (authMode === 'register') {
+                authTitle.textContent = 'Create Account';
+                authSubtitle.textContent = 'Create a new account to get started';
                 authBtn.textContent = 'Sign Up';
+                passGroup.style.display = 'block';
                 confirmPassGroup.style.display = 'block';
+                confirmPassEl.placeholder = "Confirm Password";
+                authToggleText.textContent = "Already have an account? ";
                 authToggleLink.textContent = 'Sign In';
+                forgotPassLink.style.display = 'none';
+            } else if (authMode === 'reset') {
+                authTitle.textContent = 'Reset Password';
+                authSubtitle.textContent = 'Enter username and your new password';
+                authBtn.textContent = 'Reset Password';
+                passGroup.style.display = 'none';
+                confirmPassGroup.style.display = 'block';
+                confirmPassEl.placeholder = "Enter New Password";
+                authToggleText.textContent = "Remembered your password? ";
+                authToggleLink.textContent = 'Sign In';
+                forgotPassLink.style.display = 'none';
             }
         }
 
@@ -414,17 +602,45 @@
         function showView(viewId) {
             homeView.style.display = 'none';
             transactionsView.style.display = 'none';
+            savingsView.style.display = 'none';
+            returnsView.style.display = 'none'; // --- NEW ---
+            payablesView.style.display = 'none'; // 👈 ADDED
             homeBtn.classList.remove('active', 'ghost');
             txBtn.classList.remove('active', 'ghost');
+            savingsBtn.classList.remove('active', 'ghost');
+            returnsBtn.classList.remove('active', 'ghost'); // --- NEW ---
+            payablesBtn.classList.remove('active', 'ghost'); // 👈 ADDED
+
+            // --- NEW: Add 'ghost' to all buttons first ---
+            [homeBtn, txBtn, savingsBtn, returnsBtn, payablesBtn].forEach(btn => btn.classList.add('ghost')); // 👈 UPDATED
+
             if (viewId === 'home') {
                 homeView.style.display = 'block';
                 homeBtn.classList.add('active');
-                txBtn.classList.add('ghost');
-            } else {
+                homeBtn.classList.remove('ghost');
+                // --- UPDATE: Refresh charts on showing home view to prevent shrinking ---
+                renderAllCharts();
+                // --- END UPDATE ---
+            } else if (viewId === 'transactions') {
                 transactionsView.style.display = 'block';
                 txBtn.classList.add('active');
-                homeBtn.classList.add('ghost');
+                txBtn.classList.remove('ghost');
                 renderTransactions();
+            } else if (viewId === 'savings') {
+                savingsView.style.display = 'block';
+                savingsBtn.classList.add('active');
+                savingsBtn.classList.remove('ghost');
+                renderSavings();
+            } else if (viewId === 'returns') { // --- NEW ---
+                returnsView.style.display = 'block';
+                returnsBtn.classList.add('active');
+                returnsBtn.classList.remove('ghost');
+                renderReturns();
+            } else if (viewId === 'payables') { // 👈 ADDED BLOCK
+                payablesView.style.display = 'block';
+                payablesBtn.classList.add('active');
+                payablesBtn.classList.remove('ghost');
+                renderPayables();
             }
         }
 
@@ -433,27 +649,45 @@
             const user = sessionStorage.getItem(SESSION_KEY);
             if (!user) return;
             try {
-                const [expensesRes, incomeRes, metaRes] = await Promise.all([
+                // --- NEW: Fetch returns and payables data ---
+                const [expensesRes, incomeRes, metaRes, savingsRes, returnsRes, payablesRes] = await Promise.all([
                     fetch(`/api/expenses/${user}`),
                     fetch(`/api/income/${user}`),
-                    fetch(`/api/meta/${user}`)
+                    fetch(`/api/meta/${user}`),
+                    fetch(`/api/savings/${user}`),
+                    fetch(`/api/returns/${user}`), // --- NEW ---
+                    fetch(`/api/payables/${user}`) // --- NEW ---
                 ]);
-                if (!expensesRes.ok || !incomeRes.ok || !metaRes.ok) {
+                if (!expensesRes.ok || !incomeRes.ok || !metaRes.ok || !savingsRes.ok || !returnsRes.ok || !payablesRes.ok) { // --- NEW ---
                     throw new Error('Failed to fetch user data from server.');
                 }
                 expenses = await expensesRes.json();
                 const incomeData = await incomeRes.json();
                 meta = await metaRes.json();
+                savings = await savingsRes.json();
+                returns = await returnsRes.json(); // --- NEW ---
+                payables = await payablesRes.json(); // --- NEW ---
+
                 monthlyIncomes = incomeData.reduce((acc, item) => {
                     acc[item.monthKey] = item.income;
                     return acc;
                 }, {});
                 const capitalizedUser = user.charAt(0).toUpperCase() + user.slice(1);
                 userGreetingEl.innerHTML = `Welcome, <strong style="color: var(--accent);">${escapeHtml(capitalizedUser)}</strong>`;
-                if (checkYearReset()) return;
+
+                // --- UPDATE: 1-Year Reset Check is removed ---
+                // if (checkYearReset()) return; 
+
                 renderHome();
+
                 if (transactionsView.style.display === 'block') {
                     renderTransactions();
+                } else if (savingsView.style.display === 'block') {
+                    renderSavings();
+                } else if (returnsView.style.display === 'block') { // --- NEW ---
+                    renderReturns();
+                } else if (payablesView.style.display === 'block') { // 👈 ADDED
+                    renderPayables();
                 }
             } catch (err) {
                 console.error('Error loading data:', err);
@@ -464,15 +698,18 @@
 
         // --- Rendering ---
         function renderHome() {
-            // UPDATE: Exclude EXCLUDE_CATEGORY from calculations
-            const analysisExpenses = expenses.filter(e => e.category !== EXCLUDE_CATEGORY);
+            // --- UPDATE: 'PG Rent' is now included in totals because EXCLUDE_CATEGORY is "" ---
+            const analysisExpenses = (EXCLUDE_CATEGORY)
+                ? expenses.filter(e => e.category !== EXCLUDE_CATEGORY)
+                : expenses;
+
             const total = analysisExpenses.reduce((s, x) => s + Number(x.amount), 0);
             totalAll.textContent = numberFormat(total);
             const today = new Date();
             const ym = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
             const monthTotal = analysisExpenses.filter(e => e.date.startsWith(ym)).reduce((s, x) => s + Number(x.amount), 0);
             totalMonth.textContent = numberFormat(monthTotal);
-            countTx.textContent = analysisExpenses.length; // Count only analysis-relevant transactions
+            countTx.textContent = analysisExpenses.length;
             renderIncomeForSelectedMonth();
             renderAllCharts();
             generateSmartInsights();
@@ -484,11 +721,17 @@
             const monthKey = selectedDateStr.slice(0, 7);
             const incomeForMonth = monthlyIncomes[monthKey] || 0;
             monthlyIncomeEl.value = incomeForMonth > 0 ? incomeForMonth : '';
-            // UPDATE: Exclude EXCLUDE_CATEGORY from remaining calculation
-            const monthTotal = expenses
-                .filter(e => e.date.startsWith(monthKey) && e.category !== EXCLUDE_CATEGORY)
-                .reduce((sum, e) => sum + Number(e.amount), 0);
-            const remaining = Math.max(0, incomeForMonth - monthTotal);
+
+            // --- UPDATE: 'PG Rent' is now included in monthTotal because EXCLUDE_CATEGORY is "" ---
+            const monthTotal = (EXCLUDE_CATEGORY)
+                ? expenses.filter(e => e.date.startsWith(monthKey) && e.category !== EXCLUDE_CATEGORY).reduce((sum, e) => sum + Number(e.amount), 0)
+                : expenses.filter(e => e.date.startsWith(monthKey)).reduce((sum, e) => sum + Number(e.amount), 0);
+
+            const monthSavings = savings
+                .filter(s => s.monthKey === monthKey)
+                .reduce((sum, s) => sum + Number(s.amount), 0);
+            const remaining = Math.max(0, incomeForMonth - monthTotal - monthSavings);
+
             remainingEl.textContent = numberFormat(remaining);
         }
 
@@ -504,23 +747,13 @@
 
             txGrid.innerHTML = '';
             if (list.length === 0) {
-                txGrid.innerHTML = `
-            <div class="subtitle" style="text-align:center; padding: 20px; grid-column: 1 / -1;">
-                No transactions found.
-            </div>`;
+                txGrid.innerHTML = `<div class="subtitle" style="text-align:center; padding: 20px; grid-column: 1 / -1;">No transactions found.</div>`;
                 return;
             }
 
-            // Grouping for the list view - this SHOULD include all expenses
             groupedExpenses = list.reduce((acc, tx) => {
                 let d = new Date(tx.date);
-                if (isNaN(d)) {
-                    try {
-                        d = new Date(String(tx.date).split('T')[0]);
-                    } catch {
-                        return acc;
-                    }
-                }
+                if (isNaN(d)) { try { d = new Date(String(tx.date).split('T')[0]); } catch { return acc; } }
                 if (isNaN(d)) return acc;
 
                 const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -528,7 +761,7 @@
 
                 if (!acc[monthKey]) acc[monthKey] = { label, transactions: [], total: 0 };
                 acc[monthKey].transactions.push(tx);
-                acc[monthKey].total += Number(tx.amount) || 0; // Total here includes ALL expenses for the month
+                acc[monthKey].total += Number(tx.amount) || 0;
                 return acc;
             }, {});
 
@@ -540,54 +773,176 @@
                 card.className = 'month-card';
                 card.dataset.key = key;
                 card.innerHTML = `
-            <h3>${group.label}</h3>
-            <p>Total: <strong>${numberFormat(group.total)}</strong></p>
-            <p>${group.transactions.length} Transactions</p>`;
-                card.onclick = () => showMonthDetails(key);
+                    <h3>${group.label}</h3>
+                    <p>Total: <strong>${numberFormat(group.total)}</strong></p>
+                    <p>${group.transactions.length} Transactions</p>`;
+                card.onclick = () => showMonthDetails(key, 'expense'); // --- UPDATE: Pass type ---
                 txGrid.appendChild(card);
             }
         }
 
-        window.showMonthDetails = (monthKey) => {
-            const group = groupedExpenses[monthKey];
-            if (!group) {
-                alert('No transactions found for this month.');
+        // --- UPDATE: New renderSavings function ---
+        function renderSavings() {
+            savingsGrid.innerHTML = '';
+            if (savings.length === 0) {
+                savingsGrid.innerHTML = `<p class="subtitle" style="text-align:center; padding: 20px; grid-column: 1 / -1;">No savings recorded yet.</p>`;
                 return;
             }
 
-            txModalTitle.textContent = group.label;
-            txModalBody.innerHTML = '';
+            groupedSavings = savings.reduce((acc, s) => {
+                const [year, month] = s.monthKey.split('-');
+                const label = new Date(year, month - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+                if (!acc[s.monthKey]) {
+                    acc[s.monthKey] = { label, items: [], total: 0 };
+                }
+                acc[s.monthKey].items.push(s);
+                acc[s.monthKey].total += Number(s.amount);
+                return acc;
+            }, {});
 
-            for (const e of group.transactions) {
-                const d = new Date(e.date);
-                const safeDate = isNaN(d) ? e.date : formatDate(d);
-                const safeCat = escapeHtml(e.category || 'Misc');
-                const safeTitle = escapeHtml(e.title || '(Untitled)');
-                const safeAmount = numberFormat(e.amount || 0);
+            const sortedKeys = Object.keys(groupedSavings).sort().reverse();
+            for (const key of sortedKeys) {
+                const group = groupedSavings[key];
+                const card = document.createElement('div');
+                card.className = 'month-card';
+                card.dataset.key = key;
+                card.innerHTML = `
+                    <h3>${group.label}</h3>
+                    <p>Total Saved: <strong>${numberFormat(group.total)}</strong></p>
+                    <p>${group.items.length} Savings</p>`;
+                card.onclick = () => showMonthDetails(key, 'saving'); // --- UPDATE: Pass type ---
+                savingsGrid.appendChild(card);
+            }
+        }
 
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'expense-item';
-                itemDiv.innerHTML = `
-            <div class="expense-left">
-                <div class="cat-badge">${safeCat.slice(0, 2).toUpperCase()}</div>
-                <div>
-                    <div style="font-weight:700">${safeTitle}</div>
-                    <div class="meta">${safeDate} • ${safeCat}</div>
-                </div>
-            </div>
-            <div style="display:flex; align-items:center; gap:12px;">
-                <div class="amount">${safeAmount}</div>
-                <div class="controls">
-                    <button class="btn ghost small" onclick="editExpense('${e._id}')">Edit</button>
-                    <button class="btn ghost small" onclick="deleteExpense('${e._id}')">Delete</button>
-                </div>
-            </div>`;
-                txModalBody.appendChild(itemDiv);
+        // --- NEW: renderReturns function ---
+        function renderReturns() {
+            const query = returnsSearch.value.trim().toLowerCase();
+            const sorted = [...returns].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const list = query
+                ? sorted.filter(r => r.personName.toLowerCase().includes(query))
+                : sorted;
+
+            returnsGrid.innerHTML = '';
+            if (list.length === 0) {
+                returnsGrid.innerHTML = `<p class="subtitle" style="text-align:center; padding: 20px; grid-column: 1 / -1;">No pending returns found.</p>`;
+                return;
             }
 
+            // Note: We are not grouping returns by month, but showing them as individual cards.
+            // The prompt asked for "3 cards in a row" which the 'tx-grid' class already handles.
+            for (const item of list) {
+                const card = document.createElement('div');
+                card.className = 'month-card'; // Re-using style for consistency
+                card.innerHTML = `
+                    <h3 style="color: #fbbf24;">${escapeHtml(item.personName)}</h3>
+                    <p>Amount: <strong>${numberFormat(item.amount)}</strong></p>
+                    <p>Date: ${formatDate(item.date)}</p>
+                    <p>Mode: ${escapeHtml(item.paymentMode)}</p>
+                    <div style="display:flex; gap: 8px; margin-top: 12px;">
+                        <button class="btn small" onclick="editReturn('${item._id}')" style="flex:1; background-color: #60a5fa; color: #fff;">Update</button>
+                        <button class="btn small danger" onclick="deleteReturn('${item._id}')" style="flex:1;">Received</button>
+                    </div>`;
+                returnsGrid.appendChild(card);
+            }
+        }
+
+        // --- NEW: renderPayables function ---
+        function renderPayables() {
+            const query = payablesSearch.value.trim().toLowerCase();
+            // Sort by date ascending (closest due date first)
+            const sorted = [...payables].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const list = query
+                ? sorted.filter(p => p.personName.toLowerCase().includes(query))
+                : sorted;
+
+            payablesGrid.innerHTML = '';
+            if (list.length === 0) {
+                payablesGrid.innerHTML = `<p class="subtitle" style="text-align:center; padding: 20px; grid-column: 1 / -1;">No upcoming payables found.</p>`;
+                return;
+            }
+
+            for (const item of list) {
+                const card = document.createElement('div');
+                card.className = 'month-card'; // Re-using style for consistency
+                card.innerHTML = `
+                    <h3 style="color: #fb7185;">${escapeHtml(item.personName)}</h3>
+                    <p>Amount: <strong>${numberFormat(item.amount)}</strong></p>
+                    <p>Date: ${formatDate(item.date)}</p>
+                    <p>Mode: ${escapeHtml(item.paymentMode)}</p>
+                    <div style="display:flex; gap: 8px; margin-top: 12px;">
+                        <button class="btn small" onclick="editPayable('${item._id}')" style="flex:1; background-color: #60a5fa; color: #fff;">Update</button>
+                        <button class="btn small danger" onclick="deletePayable('${item._id}')" style="flex:1;">Paid</button>
+                    </div>`;
+                payablesGrid.appendChild(card);
+            }
+        }
+
+
+        // --- UPDATE: Re-purposed showMonthDetails for expenses and savings ---
+        window.showMonthDetails = (monthKey, type) => {
+            let group, items;
+            if (type === 'expense') {
+                group = groupedExpenses[monthKey];
+                items = group.transactions;
+                txModalTitle.textContent = `${group.label} - Expenses`;
+            } else { // type === 'saving'
+                group = groupedSavings[monthKey];
+                items = group.items;
+                txModalTitle.textContent = `${group.label} - Savings`;
+            }
+
+            if (!group || !items) { alert('No data found for this month.'); return; }
+
+            txModalBody.innerHTML = '';
+
+            for (const e of items) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'expense-item'; // Reuse class for styling
+
+                if (type === 'expense') {
+                    const d = new Date(e.date);
+                    const safeDate = isNaN(d) ? e.date : formatDate(d);
+                    const safeCat = escapeHtml(e.category || 'Misc');
+                    const safeTitle = escapeHtml(e.title || '(Untitled)');
+                    const safeAmount = numberFormat(e.amount || 0);
+
+                    itemDiv.innerHTML = `
+                        <div class="expense-left">
+                            <div class="cat-badge">${safeCat.slice(0, 2).toUpperCase()}</div>
+                            <div>
+                                <div style="font-weight:700">${safeTitle}</div>
+                                <div class="meta">${safeDate} • ${safeCat}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="amount">${safeAmount}</div>
+                            <div class="controls">
+                                <button class="btn ghost small" onclick="editExpense('${e._id}')">Edit</button>
+                                <button class="btn ghost small" onclick="deleteExpense('${e._id}')">Delete</button>
+                            </div>
+                        </div>`;
+                } else { // type === 'saving'
+                    const safeTitle = escapeHtml(e.title || '(Untitled)');
+                    const safeAmount = numberFormat(e.amount || 0);
+                    itemDiv.innerHTML = `
+                        <div class="expense-left">
+                            <div class="cat-badge" style="background-color: rgba(167, 139, 250, 0.2); color: #a78bfa;">SV</div>
+                            <div>
+                                <div style="font-weight:700">${safeTitle}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="amount" style="color: #a78bfa;">${safeAmount}</div>
+                            <div class="controls">
+                                <button class="btn ghost small" onclick="deleteSaving('${e._id}')">Delete</button>
+                            </div>
+                        </div>`;
+                }
+                txModalBody.appendChild(itemDiv);
+            }
             txModal.style.display = 'flex';
         };
-
 
         // --- Form Handling ---
         function resetForm() {
@@ -599,6 +954,28 @@
             updateBtn.style.display = 'none';
             addBtn.style.display = 'inline-block';
             renderIncomeForSelectedMonth();
+        }
+
+        // --- NEW: Reset Return Form ---
+        function resetReturnForm() {
+            returnPersonEl.value = '';
+            returnAmountEl.value = '';
+            returnDateEl.value = new Date().toISOString().slice(0, 10);
+            returnModeEl.value = '';
+            editingReturnId = null;
+            updateReturnBtn.style.display = 'none';
+            addReturnBtn.style.display = 'inline-block';
+        }
+
+        // --- NEW: Reset Payable Form ---
+        function resetPayableForm() {
+            payablePersonEl.value = '';
+            payableAmountEl.value = '';
+            payableDateEl.value = new Date().toISOString().slice(0, 10);
+            payableModeEl.value = '';
+            editingPayableId = null;
+            updatePayableBtn.style.display = 'none'; // 👈 UPDATED
+            addPayableBtn.style.display = 'inline-block'; // 👈 UPDATED
         }
 
         window.editExpense = (id) => {
@@ -617,52 +994,174 @@
             renderIncomeForSelectedMonth();
         };
 
+        // --- NEW: editReturn ---
+        window.editReturn = (id) => {
+            const item = returns.find(r => r._id === id);
+            if (!item) return;
+            showView('home');
+            // --- NEW: Show the correct form tab ---
+            toggleReturnBtn.click();
+            // ---
+            returnPersonEl.value = item.personName;
+            returnAmountEl.value = item.amount;
+            returnDateEl.value = new Date(item.date).toISOString().slice(0, 10);
+            returnModeEl.value = item.paymentMode;
+            editingReturnId = id;
+            addReturnBtn.style.display = 'none';
+            updateReturnBtn.style.display = 'inline-block';
+            returnPersonEl.focus();
+        };
+
+        // --- NEW: editPayable ---
+        window.editPayable = (id) => {
+            const item = payables.find(p => p._id === id);
+            if (!item) return;
+            showView('home');
+            // Show the correct form tab
+            togglePayableBtn.click();
+
+            payablePersonEl.value = item.personName;
+            payableAmountEl.value = item.amount;
+            payableDateEl.value = new Date(item.date).toISOString().slice(0, 10);
+            payableModeEl.value = item.paymentMode;
+            editingPayableId = id;
+            addPayableBtn.style.display = 'none';
+            updatePayableBtn.style.display = 'inline-block';
+            payablePersonEl.focus();
+        };
+
         window.deleteExpense = async (id) => {
             if (!confirm('Are you sure you want to delete this expense?')) return;
             try {
                 const res = await fetch(`/api/expenses/${id}`, { method: 'DELETE' });
                 if (!res.ok) throw new Error('Failed to delete expense from server.');
-                await loadDataAndRender();
-                txModal.style.display = 'none';
+                await loadDataAndRender(); // Reloads all data
+                // --- FIX: Correctly reopen modal ---
+                const monthLabel = txModalTitle.textContent.split(' - ')[0];
+                const monthKey = Object.keys(groupedExpenses).find(key => groupedExpenses[key].label === monthLabel);
+                if (monthKey && groupedExpenses[monthKey].transactions.length > 0) {
+                    showMonthDetails(monthKey, 'expense'); // Re-open modal if items remain
+                } else {
+                    txModal.style.display = 'none';
+                    if (transactionsView.style.display === 'block') renderTransactions(); // Refresh view
+                }
             } catch (err) {
                 alert(err.message);
             }
         };
 
+        // --- UPDATE: New deleteSaving function ---
+        window.deleteSaving = async (id) => {
+            if (!confirm('Are you sure you want to delete this saving entry?')) return;
+            try {
+                const res = await fetch(`/api/savings/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Failed to delete saving from server.');
+                await loadDataAndRender(); // Reloads all data
+                const monthLabel = txModalTitle.textContent.split(' - ')[0];
+                const monthKey = Object.keys(groupedSavings).find(key => groupedSavings[key].label === monthLabel);
+                if (monthKey && groupedSavings[monthKey].items.length > 0) {
+                    showMonthDetails(monthKey, 'saving'); // Re-open modal if items remain
+                } else {
+                    txModal.style.display = 'none'; // Close modal if no items remain
+                    if (savingsView.style.display === 'block') renderSavings(); // Refresh view
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        };
+
+        // --- NEW: deleteReturn (Received) ---
+        window.deleteReturn = async (id) => {
+            if (!confirm('Are you sure you have received this payment? This will remove the entry.')) return;
+            try {
+                const res = await fetch(`/api/returns/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Failed to mark return as received.');
+                await loadDataAndRender(); // Reloads all data
+                // No modal to reopen, just re-render the view if it's active
+                if (returnsView.style.display === 'block') {
+                    renderReturns();
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        };
+
+        // --- NEW: deletePayable (Paid) ---
+        window.deletePayable = async (id) => {
+            if (!confirm('Are you sure you have paid this? This will remove the entry.')) return;
+            try {
+                const res = await fetch(`/api/payables/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Failed to mark payable as paid.');
+                await loadDataAndRender(); // Reloads all data
+                // Re-render the view if it's active
+                if (payablesView.style.display === 'block') {
+                    renderPayables();
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        };
+
+
         // --- Charting ---
         function getFilteredExpenses() {
             const period = chartPeriod.value;
-            const now = new Date();
-            // UPDATE: Filter out EXCLUDE_CATEGORY from the start
-            const filteredBase = expenses.filter(e => e.category !== EXCLUDE_CATEGORY);
+            // --- UPDATE: 'PG Rent' is no longer filtered here ---
+            const filteredBase = (EXCLUDE_CATEGORY)
+                ? expenses.filter(e => e.category !== EXCLUDE_CATEGORY)
+                : expenses;
 
-            if (period === 'all') return filteredBase;
-            if (period === 'yearly') return filteredBase.filter(e => new Date(e.date).getFullYear() === now.getFullYear());
-            if (period === 'monthly') return filteredBase.filter(e => {
+            if (!period.match(/^\d{4}-\d{2}$/)) return [];
+            const [year, month] = period.split('-').map(Number);
+            return filteredBase.filter(e => {
                 const d = new Date(e.date);
-                return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+                return d.getFullYear() === year && d.getMonth() === (month - 1);
             });
-            if (period === 'weekly') {
-                const lastWeek = new Date();
-                lastWeek.setDate(now.getDate() - 7);
-                return filteredBase.filter(e => new Date(e.date) >= lastWeek);
-            }
-            return filteredBase; // Default
+        }
+
+        // --- UPDATE: New function to get filtered savings ---
+        function getFilteredSavings() {
+            const period = chartPeriod.value;
+            if (!period.match(/^\d{4}-\d{2}$/)) return [];
+            return savings.filter(s => s.monthKey === period);
         }
 
         function renderAllCharts() {
+            // --- FIX for graph shrinking bug: ---
+            // Ensure data is available before rendering
+            if (!expenses || !savings) return;
+
             renderMonthlyBarChart();
             renderCategoryBarChart();
             renderPieChart();
             renderDonutChart();
+            renderSavingsBarChart(); // --- UPDATE ---
+            // --- UPDATE: New Graph ---
+            renderCashFlowOverviewChart();
+            // --- END UPDATE ---
             renderCashFlowTrendChart();
         }
 
         function createChart(canvasId, type, data, options) {
-            if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
-            const ctx = document.getElementById(canvasId).getContext('2d');
+            // --- FIX for graph shrinking bug: ---
+            // Check if canvas exists
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error(`Canvas with ID ${canvasId} not found.`);
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error(`Could not get 2D context for ${canvasId}.`);
+                return;
+            }
+            // Destroy existing instance *before* creating a new one
+            if (chartInstances[canvasId]) {
+                chartInstances[canvasId].destroy();
+            }
             chartInstances[canvasId] = new Chart(ctx, { type, data, options });
         }
+
         const chartDefaultOptions = { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#FFFFFF' }, grid: { color: 'rgba(255,255,255,0.1)' } }, x: { ticks: { color: '#FFFFFF' }, grid: { color: 'rgba(255,255,255,0.1)' } } } };
 
         function renderMonthlyBarChart() {
@@ -671,13 +1170,17 @@
                 const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                 const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
                 labels.push(d.toLocaleString('default', { month: 'short' }));
-                // UPDATE: Exclude EXCLUDE_CATEGORY from sum
-                const sum = expenses
-                    .filter(e => e.date.startsWith(key) && e.category !== EXCLUDE_CATEGORY)
-                    .reduce((a, b) => a + Number(b.amount), 0);
+
+                // --- UPDATE: 'PG Rent' is now included ---
+                const sum = (EXCLUDE_CATEGORY)
+                    ? expenses.filter(e => e.date.startsWith(key) && e.category !== EXCLUDE_CATEGORY).reduce((a, b) => a + Number(b.amount), 0)
+                    : expenses.filter(e => e.date.startsWith(key)).reduce((a, b) => a + Number(b.amount), 0);
+
                 dataPoints.push(sum);
             }
-            const ctx = document.getElementById('monthlyBarChart').getContext('2d');
+            const canvas = document.getElementById('monthlyBarChart');
+            if (!canvas) return; // --- FIX: Check canvas ---
+            const ctx = canvas.getContext('2d');
             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
             gradient.addColorStop(0, 'rgba(110, 231, 183, 0.8)');
             gradient.addColorStop(1, 'rgba(110, 231, 183, 0.1)');
@@ -685,32 +1188,31 @@
         }
 
         function renderCategoryBarChart() {
-            const data = getFilteredExpenses(); // This data is already filtered
+            const data = getFilteredExpenses(); // This now includes 'PG Rent'
             const categoryTotals = data.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
             const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
             const colors = ["#60a5fa", "#fbbf24", "#fb7185", "#a78bfa", "#f87171", "#6ee7b7", "#f472b6"];
-            createChart('categoryBarChart', 'bar', { labels: sorted.map(item => item[0]), datasets: [{ label: 'By Category', data: sorted.map(item => item[1]), backgroundColor: colors }] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Spend by Category', color: '#FFFFFF' } } });
+            createChart('categoryBarChart', 'bar', { labels: sorted.map(item => item[0]), datasets: [{ label: 'By Category', data: sorted.map(item => item[1]), backgroundColor: colors }] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Spend by Category (Selected Month)', color: '#FFFFFF' } } });
         }
 
         function renderPieChart() {
-            const data = getFilteredExpenses(); // This data is already filtered
+            const data = getFilteredExpenses(); // This now includes 'PG Rent'
             const categoryTotals = data.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
             const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
             createChart('pieChart', 'pie', { labels: sorted.map(item => item[0]), datasets: [{ data: sorted.map(item => item[1]), backgroundColor: ["#6ee7b7", "#60a5fa", "#fbbf24", "#fb7185", "#a78bfa", "#f472b6", "#f87171"] }] }, { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: '#FFFFFF' } } } });
         }
 
         function renderDonutChart() {
-            const data = getFilteredExpenses(); // This data is already filtered
+            const data = getFilteredExpenses(); // This now includes 'PG Rent'
             const spent = data.reduce((s, x) => s + Number(x.amount), 0);
-            let budget = 0;
-            const now = new Date();
-            const monthKey = now.toISOString().slice(0, 7);
-            const incomeForCurrentMonth = monthlyIncomes[monthKey] || 0;
-            if (chartPeriod.value === 'monthly') budget = incomeForCurrentMonth;
-            if (chartPeriod.value === 'weekly') budget = incomeForCurrentMonth / 4.33;
+            const monthKey = chartPeriod.value;
+            const incomeForSelectedMonth = monthlyIncomes[monthKey] || 0;
+            const budget = incomeForSelectedMonth;
+
             if (budget > 0) {
-                const remaining = Math.max(0, budget - spent);
-                createChart('donutChart', 'doughnut', { labels: ['Spent', 'Remaining'], datasets: [{ data: [spent, remaining], backgroundColor: ['#fb7185', '#60a5fa'], borderWidth: 0 }] }, { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: '#FFFFFF' } } } });
+                const monthSavings = getFilteredSavings().reduce((sum, s) => sum + Number(s.amount), 0);
+                const remaining = Math.max(0, budget - spent - monthSavings);
+                createChart('donutChart', 'doughnut', { labels: ['Spent', 'Saved', 'Remaining'], datasets: [{ data: [spent, monthSavings, remaining], backgroundColor: ['#fb7185', '#a78bfa', '#60a5fa'], borderWidth: 0 }] }, { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: '#FFFFFF' } } } });
             } else {
                 const categoryTotals = data.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
                 const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
@@ -718,83 +1220,191 @@
             }
         }
 
+        // --- UPDATE: New Savings Bar Chart ---
+        function renderSavingsBarChart() {
+            const labels = [], dataPoints = [], now = new Date();
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                labels.push(d.toLocaleString('default', { month: 'short' }));
+                const sum = savings
+                    .filter(s => s.monthKey === key)
+                    .reduce((a, b) => a + Number(b.amount), 0);
+                dataPoints.push(sum);
+            }
+            const canvas = document.getElementById('savingsBarChart');
+            if (!canvas) return; // --- FIX: Check canvas ---
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(167, 139, 250, 0.8)');
+            gradient.addColorStop(1, 'rgba(167, 139, 250, 0.1)');
+            createChart('savingsBarChart', 'bar', { labels, datasets: [{ label: 'Monthly Savings', data: dataPoints, backgroundColor: gradient, borderColor: '#a78bfa', borderWidth: 1 }] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Last 6 Months Savings', color: '#FFFFFF' } } });
+        }
+
+        // --- UPDATE: New Cash Flow Overview Chart ---
+        function renderCashFlowOverviewChart() {
+            const labels = [], incomePoints = [], expensePoints = [], savingPoints = [], now = new Date();
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                labels.push(d.toLocaleString('default', { month: 'short' }));
+
+                // Get Income
+                incomePoints.push(monthlyIncomes[key] || 0);
+
+                // Get Expenses (This now includes 'PG Rent')
+                const expenseSum = (EXCLUDE_CATEGORY)
+                    ? expenses.filter(e => e.date.startsWith(key) && e.category !== EXCLUDE_CATEGORY).reduce((a, b) => a + Number(b.amount), 0)
+                    : expenses.filter(e => e.date.startsWith(key)).reduce((a, b) => a + Number(b.amount), 0);
+                expensePoints.push(expenseSum);
+
+                // Get Savings
+                const savingSum = savings
+                    .filter(s => s.monthKey === key)
+                    .reduce((a, b) => a + Number(b.amount), 0);
+                savingPoints.push(savingSum);
+            }
+
+            const canvas = document.getElementById('cashFlowOverviewChart');
+            if (!canvas) return;
+
+            createChart('cashFlowOverviewChart', 'bar', {
+                labels,
+                datasets: [
+                    {
+                        label: 'Income',
+                        data: incomePoints,
+                        backgroundColor: 'rgba(110, 231, 183, 0.6)', // --accent
+                        borderColor: 'var(--accent)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Expense',
+                        data: expensePoints,
+                        backgroundColor: 'rgba(251, 113, 133, 0.6)', // --danger
+                        borderColor: '#fb7185',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Savings',
+                        data: savingPoints,
+                        backgroundColor: 'rgba(167, 139, 250, 0.6)', // purple
+                        borderColor: '#a78bfa',
+                        borderWidth: 1
+                    }
+                ]
+            }, {
+                ...chartDefaultOptions,
+                plugins: {
+                    ...chartDefaultOptions.plugins,
+                    title: { display: true, text: 'Last 6 Months: Income vs. Spend vs. Savings', color: '#FFFFFF' },
+                    legend: { display: true, position: 'bottom', labels: { color: '#FFFFFF' } } // Turn on legend for this chart
+                },
+                scales: {
+                    y: { ...chartDefaultOptions.scales.y, beginAtZero: true },
+                    x: { ...chartDefaultOptions.scales.x }
+                }
+            });
+        }
+        // --- END UPDATE ---
+
         function renderCashFlowTrendChart() {
-            const data = getFilteredExpenses(); // This data is already filtered
+            let data = getFilteredExpenses(); // This now includes 'PG Rent'
+
+            data = data.filter(e => e.category !== 'Rent' && e.category !== 'PG Rent' && e.category !== 'RENT' && e.category !== 'rent');     //-------imp code update for removing the data of rent from graph------
+
             let labels = [], dataPoints = [];
             if (data.length === 0) {
                 createChart('cashFlowTrendChart', 'line', { labels: [], datasets: [] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Cash Flow Trend', color: '#FFFFFF' } } });
                 return;
             }
-            if (chartPeriod.value === 'weekly') {
-                const dailyTotals = {}; const today = new Date();
-                for (let i = 6; i >= 0; i--) {
-                    const d = new Date(); d.setDate(today.getDate() - i);
-                    const key = d.toISOString().slice(0, 10);
-                    labels.push(d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
-                    dailyTotals[key] = 0;
-                }
-                data.forEach(tx => { if (dailyTotals[tx.date] !== undefined) { dailyTotals[tx.date] += Number(tx.amount); } });
-                dataPoints = Object.values(dailyTotals);
-            } else if (chartPeriod.value === 'monthly') {
-                const today = new Date(); const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-                labels = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-                const monthlyData = {}; labels.forEach(day => monthlyData[day] = 0);
-                data.forEach(tx => {
-                    const d = new Date(tx.date);
-                    if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()) {
-                        monthlyData[d.getDate()] += Number(tx.amount);
-                    }
-                });
-                dataPoints = Object.values(monthlyData);
-            } else {
-                const monthlyData = {};
-                data.sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(tx => {
-                    const monthKey = tx.date.slice(0, 7);
-                    monthlyData[monthKey] = (monthlyData[monthKey] || 0) + Number(tx.amount);
-                });
-                labels = Object.keys(monthlyData).map(key => new Date(key + '-02').toLocaleString('default', { month: 'short', year: '2-digit' }));
-                dataPoints = Object.values(monthlyData);
-            }
-            const ctx = document.getElementById('cashFlowTrendChart').getContext('2d');
+
+            const [year, monthVal] = chartPeriod.value.split('-').map(Number);
+            const monthIndex = monthVal - 1;
+            const daysInMonth = new Date(year, monthVal, 0).getDate();
+
+            labels = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+            const monthlyData = {};
+            labels.forEach(day => monthlyData[day] = 0);
+
+            data.forEach(tx => {
+                const d = new Date(tx.date);
+                monthlyData[d.getDate()] += Number(tx.amount);
+            });
+            dataPoints = Object.values(monthlyData);
+
+            const canvas = document.getElementById('cashFlowTrendChart');
+            if (!canvas) return; // --- FIX: Check canvas ---
+            const ctx = canvas.getContext('2d');
             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
             gradient.addColorStop(0, 'rgba(110, 231, 183, 0.5)');
             gradient.addColorStop(1, 'rgba(110, 231, 183, 0.05)');
-            createChart('cashFlowTrendChart', 'line', { labels, datasets: [{ label: 'Spend Trend', data: dataPoints, borderColor: '#6ee7b7', backgroundColor: gradient, fill: true, tension: 0.3, borderWidth: 2 }] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Cash Flow Trend', color: '#FFFFFF' } } });
+            createChart('cashFlowTrendChart', 'line', { labels, datasets: [{ label: 'Spend Trend', data: dataPoints, borderColor: '#6ee7b7', backgroundColor: gradient, fill: true, tension: 0.3, borderWidth: 2 }] }, { responsive: true, maintainAspectRatio: false, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Daily Spend (Selected Month)                                                                                     (Note: We are not including the RENT related things in this graph for better graph UI)', color: '#FFFFFF' } }, scales: chartDefaultOptions.scales });
         }
 
         function generateSmartInsights() {
             const insightsContainer = document.getElementById('smart-insights');
             const now = new Date(), currentMonth = now.getMonth(), currentYear = now.getFullYear();
+            const currentMonthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+
             const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
             const prevMonth = prevMonthDate.getMonth(), prevYear = prevMonthDate.getFullYear();
 
-            // UPDATE: Exclude EXCLUDE_CATEGORY from insights
-            const currentMonthExpenses = expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === currentYear && d.getMonth() === currentMonth && e.category !== EXCLUDE_CATEGORY; });
-            const prevMonthExpenses = expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === prevYear && d.getMonth() === prevMonth && e.category !== EXCLUDE_CATEGORY; });
+            // --- UPDATE: 'PG Rent' is now included ---
+            const analysisExpenses = (EXCLUDE_CATEGORY)
+                ? expenses.filter(e => e.category !== EXCLUDE_CATEGORY)
+                : expenses;
 
-            if (currentMonthExpenses.length < 2 || prevMonthExpenses.length < 2) { insightsContainer.innerHTML = '<p class="subtitle">Not enough data for comparison.</p>'; return; }
-            const currentCategoryTotals = currentMonthExpenses.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
-            const prevCategoryTotals = prevMonthExpenses.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
+            const currentMonthExpenses = analysisExpenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === currentYear && d.getMonth() === currentMonth; });
+            const prevMonthExpenses = analysisExpenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === prevYear && d.getMonth() === prevMonth; });
+            const currentMonthSavings = savings.filter(s => s.monthKey === currentMonthKey);
+
             let insights = [];
-            for (const category in currentCategoryTotals) {
-                if (prevCategoryTotals[category]) {
-                    const current = currentCategoryTotals[category], prev = prevCategoryTotals[category];
-                    if (prev === 0) continue;
-                    const percentChange = Math.round(((current - prev) / prev) * 100);
-                    if (Math.abs(percentChange) >= 10) {
-                        if (percentChange > 0) insights.push(`<p class="negative">You spent ${percentChange}% more on ${escapeHtml(category)}.</p>`);
-                        else insights.push(`<p class="positive">${escapeHtml(category)} expenses are down by ${-percentChange}%.</p>`);
-                    }
+            const totalSaved = currentMonthSavings.reduce((s, e) => s + Number(e.amount), 0);
+            if (totalSaved > 0) {
+                insights.push(`<p class="positive">You've set aside ${numberFormat(totalSaved)} in savings this month. Great job!</p>`);
+            } else {
+                insights.push(`<p class="info">Don't forget to add your savings for this month.</p>`);
+            }
+
+            const totalCurrentSpent = currentMonthExpenses.reduce((s, e) => s + Number(e.amount), 0);
+            const currentIncome = monthlyIncomes[currentMonthKey] || 0;
+            if (currentIncome > 0) {
+                const percentSpent = Math.round(((totalCurrentSpent + totalSaved) / currentIncome) * 100);
+                if (percentSpent > 100) {
+                    insights.push(`<p class="negative">You've used ${percentSpent}% of your income. Be careful!</p>`);
+                } else if (percentSpent > 0) {
+                    insights.push(`<p class="info">You've used ${percentSpent}% of your monthly income (including savings).</p>`);
                 }
             }
-            const totalCurrent = currentMonthExpenses.reduce((s, e) => s + Number(e.amount), 0);
-            const totalPrev = prevMonthExpenses.reduce((s, e) => s + Number(e.amount), 0);
-            if (totalPrev > 0) {
-                const totalPercentChange = Math.round(((totalCurrent - totalPrev) / totalPrev) * 100);
-                if (totalPercentChange > 10) insights.unshift(`<p class="negative">Overall spending is up by ${totalPercentChange}%.</p>`);
-                else if (totalPercentChange < -10) insights.unshift(`<p class="positive">Great job! Spending is down by ${-totalPercentChange}%.</p>`);
+
+            if (currentMonthExpenses.length > 0) {
+                const currentCategoryTotals = currentMonthExpenses.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
+                const topCategory = Object.entries(currentCategoryTotals).sort((a, b) => b[1] - a[1])[0];
+                insights.push(`<p class="info">Your top expense this month is <strong>${escapeHtml(topCategory[0])}</strong> at ${numberFormat(topCategory[1])}.</p>`);
             }
-            insightsContainer.innerHTML = insights.length > 0 ? insights.slice(0, 3).join('') : '<p class="subtitle">Spending is stable. Keep it up!</p>';
+
+            const totalPrevSpent = prevMonthExpenses.reduce((s, e) => s + Number(e.amount), 0);
+            if (totalPrevSpent > 0 && totalCurrentSpent > 0) {
+                const totalPercentChange = Math.round(((totalCurrentSpent - totalPrevSpent) / totalPrevSpent) * 100);
+                if (totalPercentChange > 10) insights.unshift(`<p class="negative">Overall spending is up by ${totalPercentChange}% from last month.</p>`);
+                else if (totalPercentChange < -10) insights.unshift(`<p class="positive">Great job! Spending is down by ${-totalPercentChange}% from last month.</p>`);
+                else insights.push(`<p class="info">Your spending is stable compared to last month.</p>`);
+            }
+
+            // --- NEW: Add insight for pending returns ---
+            const totalPendingReturns = returns.reduce((sum, r) => sum + Number(r.amount), 0);
+            if (totalPendingReturns > 0) {
+                insights.push(`<p class="info">You have <strong>${numberFormat(totalPendingReturns)}</strong> in pending returns.</p>`);
+            }
+
+            // --- NEW: Add insight for pending payables ---
+            const totalPendingPayables = payables.reduce((sum, p) => sum + Number(p.amount), 0);
+            if (totalPendingPayables > 0) {
+                insights.push(`<p class="info">You have <strong>${numberFormat(totalPendingPayables)}</strong> in upcoming payables.</p>`);
+            }
+
+            insightsContainer.innerHTML = insights.length > 0 ? insights.slice(0, 3).join('') : '<p class="subtitle">Add transactions to see insights.</p>';
         }
 
         // --- Data Export & PDF Report Generation ---
@@ -812,80 +1422,57 @@
             const capitalizedUser = user.charAt(0).toUpperCase() + user.slice(1);
             const totalPagesExp = '{total_pages_count_string}';
 
-            // Add Header
             const header = (data) => {
-                doc.setFontSize(20);
-                doc.setTextColor(40);
-                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(20); doc.setTextColor(40); doc.setFont('helvetica', 'bold');
                 doc.text('TALYEXP', 15, 20);
-
-                doc.setFontSize(10);
-                doc.setTextColor(100);
-                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10); doc.setTextColor(100); doc.setFont('helvetica', 'normal');
                 doc.text(`Expense Report for ${capitalizedUser}`, 15, 26);
                 doc.text(`Period: ${periodTitle}`, doc.internal.pageSize.getWidth() - 15, 20, { align: 'right' });
                 doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')}`, doc.internal.pageSize.getWidth() - 15, 26, { align: 'right' });
-                doc.setLineWidth(0.5);
-                doc.line(15, 30, doc.internal.pageSize.getWidth() - 15, 30);
+                doc.setLineWidth(0.5); doc.line(15, 30, doc.internal.pageSize.getWidth() - 15, 30);
             };
 
-            // Add Footer
             const footer = (data) => {
                 const pageCount = doc.internal.getNumberOfPages();
-                doc.setFontSize(8);
-                doc.setTextColor(150);
+                doc.setFontSize(8); doc.setTextColor(150);
                 doc.text(`Page ${data.pageNumber} of ${totalPagesExp}`, doc.internal.pageSize.getWidth() / 2, 287, { align: 'center' });
                 doc.text('TALYEXP | Confidential', 15, 287);
             };
 
-            // Calculate Summary
-            // Note: dataToExport is already filtered for EXCLUDE_CATEGORY by the calling function
             const total = dataToExport.reduce((sum, item) => sum + Number(item.amount), 0);
             const count = dataToExport.length;
             const average = count > 0 ? total / count : 0;
             const categoryTotals = dataToExport.reduce((acc, { category, amount }) => {
-                acc[category] = (acc[category] || 0) + Number(amount);
-                return acc;
+                acc[category] = (acc[category] || 0) + Number(amount); return acc;
             }, {});
             const topCategory = Object.keys(categoryTotals).length > 0 ? Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0] : ['N/A', 0];
 
-            // Add Summary Box
             const summaryY = 40;
             doc.setFillColor(245, 245, 245);
             doc.roundedRect(14, summaryY, doc.internal.pageSize.getWidth() - 28, 25, 3, 3, 'F');
-            doc.setFontSize(10);
-            doc.setTextColor(50);
+            doc.setFontSize(10); doc.setTextColor(50);
             doc.text(`Total Expenses:`, 20, summaryY + 7);
             doc.text(`Total Transactions:`, 20, summaryY + 14);
             doc.text(`Average Transaction:`, doc.internal.pageSize.getWidth() / 2, summaryY + 7);
             doc.text(`Top Category:`, doc.internal.pageSize.getWidth() / 2, summaryY + 14);
-
             doc.setFont('helvetica', 'bold');
             doc.text(numberFormat(total), 60, summaryY + 7);
             doc.text(String(count), 60, summaryY + 14);
             doc.text(numberFormat(average), doc.internal.pageSize.getWidth() / 2 + 40, summaryY + 7);
             doc.text(`${topCategory[0]} (${numberFormat(topCategory[1])})`, doc.internal.pageSize.getWidth() / 2 + 40, summaryY + 14);
 
-
-            // Add Table
             doc.autoTable({
                 head: [['Date', 'Title', 'Category', 'Amount (INR)']],
                 body: dataToExport.map(item => [formatDate(item.date), item.title, item.category, Number(item.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })]),
                 startY: summaryY + 30,
                 margin: { top: 35 },
-                didDrawPage: (data) => {
-                    header(data);
-                    footer(data);
-                },
+                didDrawPage: (data) => { header(data); footer(data); },
                 headStyles: { fillColor: [41, 128, 186], textColor: 255, fontStyle: 'bold' },
                 alternateRowStyles: { fillColor: [240, 248, 255] },
                 styles: { halign: 'left', cellPadding: 2.5 },
-                columnStyles: {
-                    3: { halign: 'right' }
-                }
+                columnStyles: { 3: { halign: 'right' } }
             });
 
-            // Finalize page count
             if (typeof doc.putTotalPages === 'function') {
                 doc.putTotalPages(totalPagesExp);
             }
@@ -896,37 +1483,28 @@
 
         function handleDownload() {
             const period = downloadPeriod.value;
-            const now = new Date();
-            let dataToExport = [], periodTitle = "";
-            // UPDATE: All filters now also exclude EXCLUDE_CATEGORY
-            if (period === 'weekly') {
-                const lastWeek = new Date(); lastWeek.setDate(now.getDate() - 7);
-                dataToExport = expenses.filter(e => new Date(e.date) >= lastWeek && e.category !== EXCLUDE_CATEGORY);
-                periodTitle = "This Week";
-            } else if (period === 'monthly') {
-                const month = now.getMonth(), year = now.getFullYear();
-                dataToExport = expenses.filter(e => { const d = new Date(e.date); return d.getMonth() === month && d.getFullYear() === year && e.category !== EXCLUDE_CATEGORY; });
-                periodTitle = "This Month";
-            } else if (period === 'prev_monthly') {
-                // UPDATE: Logic for previous month
-                const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                const month = prevMonthDate.getMonth(), year = prevMonthDate.getFullYear();
-                dataToExport = expenses.filter(e => { const d = new Date(e.date); return d.getMonth() === month && d.getFullYear() === year && e.category !== EXCLUDE_CATEGORY; });
-                periodTitle = "Previous Month";
-            } else if (period === 'yearly') {
-                const year = now.getFullYear();
-                dataToExport = expenses.filter(e => new Date(e.date).getFullYear() === year && e.category !== EXCLUDE_CATEGORY);
-                periodTitle = "This Year";
-            }
-            if (dataToExport.length === 0) { alert("No data available for the selected period."); return; }
-            generatePdfReport(dataToExport, `TALYEXP_${period}_${now.toISOString().slice(0, 10)}.pdf`, periodTitle);
+            if (!period.match(/^\d{4}-\d{2}$/)) { alert("Please select a valid month."); return; }
+            const [year, monthVal] = period.split('-').map(Number);
+            const monthIndex = monthVal - 1;
+
+            // --- UPDATE: 'PG Rent' is now included in downloads ---
+            const dataToExport = (EXCLUDE_CATEGORY)
+                ? expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === year && d.getMonth() === monthIndex && e.category !== EXCLUDE_CATEGORY; })
+                : expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === year && d.getMonth() === monthIndex; });
+
+            const periodTitle = new Date(year, monthIndex, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+            if (dataToExport.length === 0) { alert(`No data available for ${periodTitle}.`); return; }
+            generatePdfReport(dataToExport, `TALYEXP_${periodTitle.replace(' ', '_')}.pdf`, periodTitle);
         }
 
         function handleYearlyDownload() {
             const year = prompt("Enter year for report:", new Date().getFullYear());
             if (!year || isNaN(year)) { alert("Invalid year."); return; }
-            // UPDATE: Exclude EXCLUDE_CATEGORY
-            const data = expenses.filter(e => new Date(e.date).getFullYear() === parseInt(year) && e.category !== EXCLUDE_CATEGORY);
+            // --- UPDATE: 'PG Rent' is now included in downloads ---
+            const data = (EXCLUDE_CATEGORY)
+                ? expenses.filter(e => new Date(e.date).getFullYear() === parseInt(year) && e.category !== EXCLUDE_CATEGORY)
+                : expenses.filter(e => new Date(e.date).getFullYear() === parseInt(year));
+
             if (data.length === 0) { alert(`No data for the year ${year}.`); return; }
             generatePdfReport(data, `talyexp_yearly_${year}.pdf`, `Year ${year}`);
         }
@@ -937,87 +1515,82 @@
             const quarter = prompt("Enter quarter (1-4):");
             if (!quarter || !['1', '2', '3', '4'].includes(quarter)) { alert("Invalid quarter."); return; }
             const q = parseInt(quarter), startMonth = (q - 1) * 3, endMonth = startMonth + 2;
-            // UPDATE: Exclude EXCLUDE_CATEGORY
-            const data = expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === parseInt(year) && d.getMonth() >= startMonth && d.getMonth() <= endMonth && e.category !== EXCLUDE_CATEGORY; });
+
+            // --- UPDATE: 'PG Rent' is now included in downloads ---
+            const data = (EXCLUDE_CATEGORY)
+                ? expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === parseInt(year) && d.getMonth() >= startMonth && d.getMonth() <= endMonth && e.category !== EXCLUDE_CATEGORY; })
+                : expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === parseInt(year) && d.getMonth() >= startMonth && d.getMonth() <= endMonth; });
+
             if (data.length === 0) { alert(`No data for Q${q} ${year}.`); return; }
             generatePdfReport(data, `talyexp_quarterly_Q${q}-${year}.pdf`, `Quarter ${q}, ${year}`);
         }
 
         // --- Data Reset ---
         function checkYearReset() {
-            const oneYear = 31536000000;
-            if (meta.startTs && (Date.now() - meta.startTs) >= oneYear) { resetModal.style.display = 'flex'; return true; }
+            // --- UPDATE: 1-Year Reset functionality is now disabled ---
             return false;
+            // const oneYear = 31536000000; // Original value
+            // if (meta.startTs && (Date.now() - meta.startTs) >= oneYear) { resetModal.style.display = 'flex'; return true; }
+            // return false;
         }
 
         async function handleFullReset() {
-            if (confirm('DANGER! This will permanently delete all your data. Are you sure?')) {
+            if (confirm('DANGER! This will permanently delete all your data (expenses, savings, returns, and payables). Are you sure?')) {
                 const password = prompt("To confirm this action, please enter your login password:");
-                if (!password) {
-                    // User cancelled the prompt or entered nothing
-                    alert("Password not entered. Reset cancelled.");
-                    return;
-                }
-
+                if (!password) { alert("Password not entered. Reset cancelled."); return; }
                 const user = sessionStorage.getItem(SESSION_KEY);
-                if (!user) {
-                    alert('No user session found. Please log in again.');
-                    return;
-                }
-
+                if (!user) { alert('No user session found. Please log in again.'); return; }
                 try {
-                    // Step 1: Verify the password by re-using the login endpoint.
                     const verifyRes = await fetch('/api/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username: user, password: password })
                     });
-
-                    // If verification fails (e.g., 401 Unauthorized)
-                    if (!verifyRes.ok) {
-                        alert('Invalid credentials. Cannot reset.');
-                        return;
-                    }
-
-                    // Step 2: If verification is successful, inform user and proceed.
+                    if (!verifyRes.ok) { alert('Invalid credentials. Cannot reset.'); return; }
                     alert("Password confirmed. Proceeding with data reset.");
-
-                    const [expRes, incRes, metaRes] = await Promise.all([
+                    // --- NEW: Add payables delete ---
+                    const [expRes, incRes, saveRes, retRes, payRes, metaRes] = await Promise.all([
                         fetch(`/api/expenses/user/${user}`, { method: 'DELETE' }),
                         fetch(`/api/income/user/${user}`, { method: 'DELETE' }),
+                        fetch(`/api/savings/user/${user}`, { method: 'DELETE' }),
+                        fetch(`/api/returns/user/${user}`, { method: 'DELETE' }), // --- NEW ---
+                        fetch(`/api/payables/user/${user}`, { method: 'DELETE' }), // --- NEW ---
                         fetch('/api/meta/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user }) })
                     ]);
-
-                    if (!expRes.ok || !incRes.ok || !metaRes.ok) {
+                    if (!expRes.ok || !incRes.ok || !saveRes.ok || !retRes.ok || !payRes.ok || !metaRes.ok) { // --- NEW ---
                         throw new Error(`Reset failed on the server after password verification.`);
                     }
-
                     alert('All your application data has been reset successfully.');
                     location.reload();
-
                 } catch (err) {
                     console.error("Reset error:", err);
-                    // Provide a more generic message for other errors (like network issues)
                     alert(`An error occurred during reset. Please try again.`);
                 }
             }
         }
 
+        // --- UPDATE: This function is no longer called by any button ---
+        /*
         function handleArchiveAndReset() {
             const user = sessionStorage.getItem(SESSION_KEY);
             if (!user) { alert('No user in session'); return; }
+            // Note: Archive only includes expenses.
             generatePdfReport(expenses, `talyexp_full_archive_${new Date().toISOString().slice(0, 10)}.pdf`, "Full Data Archive").then(() => {
                 Promise.all([
                     fetch(`/api/expenses/user/${user}`, { method: 'DELETE' }),
                     fetch(`/api/income/user/${user}`, { method: 'DELETE' }),
+                    fetch(`/api/savings/user/${user}`, { method: 'DELETE' }),
+                    fetch(`/api/returns/user/${user}`, { method: 'DELETE' }), // --- NEW ---
+                    fetch(`/api/payables/user/${user}`, { method: 'DELETE' }), // --- NEW ---
                     fetch('/api/meta/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user }) })
-                ]).then(async ([a, b, c]) => {
-                    if (!a.ok || !b.ok || !c.ok) throw new Error('Reset failed after archive.');
+                ]).then(async ([a, b, c, d, e, f]) => { // --- NEW ---
+                    if (!a.ok || !b.ok || !c.ok || !d.ok || !e.ok || !f.ok) throw new Error('Reset failed after archive.');
                     alert('Archive downloaded and all data has been reset.');
                     location.reload();
                 }).catch(err => alert(err.message));
             });
         }
+        */
 
         // --- Voice Input Logic ---
         function setupVoiceInput() {
@@ -1036,17 +1609,14 @@
         function parseVoiceCommand(command) {
             const amountMatch = command.match(/(?:amount|spend|cost)\s+([\d,.]+)/);
             if (amountMatch) amountEl.value = amountMatch[1].replace(/,/g, '');
-
             const categories = ['food', 'transport', 'bills', 'shopping', 'entertainment', 'health', 'other'];
             const categoryMatch = command.match(/category\s+([a-zA-Z]+)/);
             let category = '';
             if (categoryMatch && categories.includes(categoryMatch[1])) category = categoryMatch[1];
             else { for (const cat of categories) { if (command.includes(cat)) { category = cat; break; } } }
             if (category) categoryEl.value = category.charAt(0).toUpperCase() + category.slice(1);
-
             const titleMatch = command.match(/title\s+(.+?)(?=\s+amount|\s+category|$)/);
             if (titleMatch) titleEl.value = titleMatch[1].trim().charAt(0).toUpperCase() + titleMatch[1].trim().slice(1);
-
             if (command.includes('today')) dateEl.value = new Date().toISOString().slice(0, 10);
             else if (command.includes('yesterday')) {
                 const d = new Date(); d.setDate(d.getDate() - 1);
@@ -1079,21 +1649,74 @@
             });
         }
 
+        function populateMonthDropdowns() {
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonthKey = `${currentYear}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            [downloadPeriod, chartPeriod].forEach(dropdown => {
+                dropdown.innerHTML = '';
+                for (let i = 0; i < 12; i++) {
+                    const monthName = months[i];
+                    const monthKey = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
+                    const option = document.createElement('option');
+                    option.value = monthKey;
+                    option.textContent = `${monthName} ${currentYear}`;
+                    dropdown.appendChild(option);
+                }
+            });
+            chartPeriod.value = currentMonthKey;
+            downloadPeriod.value = currentMonthKey;
+        }
+
         // --- App Initialization ---
         function init() {
             dateEl.value = new Date().toISOString().slice(0, 10);
+            returnDateEl.value = new Date().toISOString().slice(0, 10); // --- NEW ---
+            payableDateEl.value = new Date().toISOString().slice(0, 10); // --- NEW ---
+            savingMonthEl.value = new Date().toISOString().slice(0, 7);
+            populateMonthDropdowns();
+
             authBtn.addEventListener('click', handleAuth);
             loginPassEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAuth(); });
-            authToggleLink.addEventListener('click', toggleAuthMode);
+            confirmPassEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAuth(); }); // --- UPDATE ---
+
+            // --- FIX for auth toggle link ---
+            authToggleLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleAuthMode(authMode === 'login' ? 'register' : 'login');
+            });
+            forgotPassLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleAuthMode('reset');
+            });
+
             logoutBtn.addEventListener('click', handleLogout);
             fullResetBtn.addEventListener('click', handleFullReset);
             homeBtn.addEventListener('click', () => showView('home'));
             txBtn.addEventListener('click', () => showView('transactions'));
+            savingsBtn.addEventListener('click', () => showView('savings'));
+            returnsBtn.addEventListener('click', () => showView('returns')); // --- NEW ---
+            payablesBtn.addEventListener('click', () => showView('payables')); // 👈 ADDED
             chartPeriod.addEventListener('change', renderAllCharts);
             dateEl.addEventListener('change', renderIncomeForSelectedMonth);
 
             hamburgerBtn.addEventListener('click', (e) => { e.stopPropagation(); navLinks.classList.toggle('active'); });
             document.addEventListener('click', (e) => { if (!navLinks.contains(e.target) && !hamburgerBtn.contains(e.target)) navLinks.classList.remove('active'); });
+
+            // --- NEW: Form Toggle Logic ---
+            toggleReturnBtn.addEventListener('click', () => {
+                returnFormContainer.style.display = 'block';
+                payableFormContainer.style.display = 'none';
+                toggleReturnBtn.classList.add('active');
+                togglePayableBtn.classList.remove('active');
+            });
+            togglePayableBtn.addEventListener('click', () => {
+                returnFormContainer.style.display = 'none';
+                payableFormContainer.style.display = 'block';
+                toggleReturnBtn.classList.remove('active');
+                togglePayableBtn.classList.add('active');
+            });
 
             addBtn.addEventListener('click', async () => {
                 const t = titleEl.value.trim(), a = parseFloat(amountEl.value || 0), d = dateEl.value, c = categoryEl.value.trim() || 'Other';
@@ -1107,6 +1730,55 @@
                     if (!res.ok) throw new Error('Failed to add expense');
                     await loadDataAndRender();
                     resetForm();
+                } catch (err) { alert(err.message); }
+            });
+
+            addSavingBtn.addEventListener('click', async () => {
+                const t = savingTitleEl.value.trim(), a = parseFloat(savingAmountEl.value || 0), m = savingMonthEl.value;
+                if (!t || !a || !m) { alert('Please enter title, amount, and month for saving.'); return; }
+                try {
+                    const res = await fetch('/api/savings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user: sessionStorage.getItem(SESSION_KEY), title: t, amount: a, monthKey: m })
+                    });
+                    if (!res.ok) throw new Error('Failed to add saving');
+                    await loadDataAndRender();
+                    savingTitleEl.value = '';
+                    savingAmountEl.value = '';
+                } catch (err) { alert(err.message); }
+            });
+
+            // --- NEW: Add Return ---
+            addReturnBtn.addEventListener('click', async () => {
+                const p = returnPersonEl.value.trim(), a = parseFloat(returnAmountEl.value || 0), d = returnDateEl.value, m = returnModeEl.value.trim() || 'N/A';
+                if (!p || !a || !d) { alert('Please enter person name, amount, and date.'); return; }
+                try {
+                    const res = await fetch('/api/returns', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user: sessionStorage.getItem(SESSION_KEY), personName: p, amount: a, date: d, paymentMode: m })
+                    });
+                    if (!res.ok) throw new Error('Failed to add pending return');
+                    await loadDataAndRender();
+                    resetReturnForm();
+                } catch (err) { alert(err.message); }
+            });
+
+            // --- NEW: Add Payable ---
+            addPayableBtn.addEventListener('click', async () => {
+                const p = payablePersonEl.value.trim(), a = parseFloat(payableAmountEl.value || 0), d = payableDateEl.value, m = payableModeEl.value.trim() || 'N/A';
+                if (!p || !a || !d) { alert('Please enter person name, amount, and due date.'); return; }
+                try {
+                    const res = await fetch('/api/payables', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user: sessionStorage.getItem(SESSION_KEY), personName: p, amount: a, date: d, paymentMode: m })
+                    });
+                    if (!res.ok) throw new Error('Failed to add payable');
+                    await loadDataAndRender(); // Reloads all data, including payables
+                    resetPayableForm();
+                    alert('Payable added successfully!');
                 } catch (err) { alert(err.message); }
             });
 
@@ -1125,8 +1797,44 @@
                 } catch (err) { alert(err.message); }
             });
 
+            // --- NEW: Update Return ---
+            updateReturnBtn.addEventListener('click', async () => {
+                const p = returnPersonEl.value.trim(), a = parseFloat(returnAmountEl.value || 0), d = returnDateEl.value, m = returnModeEl.value.trim() || 'N/A';
+                if (!p || !a || !d || !editingReturnId) { alert('Please fill all fields.'); return; }
+                try {
+                    const res = await fetch(`/api/returns/${editingReturnId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ personName: p, amount: a, date: d, paymentMode: m })
+                    });
+                    if (!res.ok) throw new Error('Failed to update pending return');
+                    await loadDataAndRender();
+                    resetReturnForm();
+                    if (returnsView.style.display === 'block') renderReturns(); // Refresh view
+                } catch (err) { alert(err.message); }
+            });
+
+            // --- NEW: Update Payable ---
+            updatePayableBtn.addEventListener('click', async () => {
+                const p = payablePersonEl.value.trim(), a = parseFloat(payableAmountEl.value || 0), d = payableDateEl.value, m = payableModeEl.value.trim() || 'N/A';
+                if (!p || !a || !d || !editingPayableId) { alert('Please fill all fields.'); return; }
+                try {
+                    const res = await fetch(`/api/payables/${editingPayableId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ personName: p, amount: a, date: d, paymentMode: m })
+                    });
+                    if (!res.ok) throw new Error('Failed to update payable');
+                    await loadDataAndRender();
+                    resetPayableForm();
+                    if (payablesView.style.display === 'block') renderPayables(); // Refresh view
+                } catch (err) { alert(err.message); }
+            });
+
             resetBtn.addEventListener('click', resetForm);
             txSearch.addEventListener('input', renderTransactions);
+            returnsSearch.addEventListener('input', renderReturns); // --- NEW ---
+            payablesSearch.addEventListener('input', renderPayables); // 👈 ADDED
 
             saveIncomeBtn.addEventListener('click', async () => {
                 const selectedDateStr = dateEl.value;
@@ -1148,7 +1856,8 @@
             });
 
             downloadBtn.addEventListener('click', handleDownload);
-            downloadArchiveBtn.addEventListener('click', handleArchiveAndReset);
+            // --- UPDATE: Event listener for 1-year reset button removed ---
+            // downloadArchiveBtn.addEventListener('click', handleArchiveAndReset);
             closeModalBtn.addEventListener('click', () => txModal.style.display = 'none');
             txModal.addEventListener('click', (e) => { if (e.target === txModal) txModal.style.display = 'none'; });
             downloadYearlyBtn.addEventListener('click', handleYearlyDownload);
@@ -1175,6 +1884,7 @@
 
         init();
     </script>
+
 </body>
 
 </html>

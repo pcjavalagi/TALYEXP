@@ -87,10 +87,9 @@
                         <button id="txBtn" class="btn small ghost">Transactions</button>
                         <button id="savingsBtn" class="btn small ghost">Savings</button>
                         <button id="returnsBtn" class="btn small ghost">Returns</button>
-                        <button id="payablesBtn" class="btn small ghost">Payables</button> <button id="fullResetBtn"
-                            class="btn small danger">Reset App</button>
-                        <button id="logoutBtn" class="btn ghost small">Logout</button>
-                        <button id="calculatorBtn" class="btn ghost small" title="Calculator" style="padding: 6px 8px;">
+                        <button id="payablesBtn" class="btn small ghost">Payables</button>
+                        <button id="contactBtn" class="btn small ghost">Contact Me</button> <button id="calculatorBtn"
+                            class="btn ghost small" title="Calculator" style="padding: 6px 8px;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                 viewBox="0 0 256 256">
                                 <path
@@ -99,6 +98,12 @@
                             </svg>
                             <div class="calcbtn">Calculator</div>
                         </button>
+                        <button id="themeToggleBtn" class="btn ghost small" title="Toggle Theme"
+                            style="padding: 6px 8px;">
+                            ☀️ / 🌙
+                        </button>
+                        <button id="fullResetBtn" class="btn small danger">Reset App</button>
+                        <button id="logoutBtn" class="btn ghost small">Logout</button>
                     </div>
                 </nav>
             </div>
@@ -318,6 +323,40 @@
                     </div>
                 </div>
             </div>
+
+            <div id="contact-view" class="card" style="display: none;">
+                <div class="top-bar">
+                    <h2 style="margin:0;">Contact Me / Suggestions</h2>
+                </div>
+                <p class="subtitle" style="margin-top: 0; margin-bottom: 24px;">Have a question or a suggestion to
+                    improve TALYEXP? Let me know!</p>
+
+                <form id="contact-form" style="max-width: 600px; margin: 0 auto;">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="contact-name">Your Name (Required)</label>
+                        <input id="contact-name" class="input" type="text" required />
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="contact-phone">Phone Number (Required)</label>
+                        <input id="contact-phone" class="input" type="text" required />
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="contact-email">Email (Optional)</label>
+                        <input id="contact-email" class="input" type="email" />
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="contact-query">Your Query or Suggestion</label>
+                        <textarea id="contact-query" class="input"
+                            placeholder="Please tell your query or tell any suggestions to improve the application"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn">Submit</button>
+                        <button type="reset" class="btn ghost">Reset</button>
+                        <button class="btn"><a href="index.html">Back</a></button>
+                    </div>
+                </form>
+            </div>
+
         </main>
         <footer class="card" style="margin-top: 12px; padding: 12px; text-align: center;">
             <p style="margin:0; font-size: 14px; color: var(--muted);">
@@ -363,6 +402,27 @@
             </div>
         </div>
     </div>
+
+    <div id="password-modal" class="reset-modal">
+        <div class="reset-box">
+            <h3 id="password-modal-title">Confirm Action</h3>
+            <p id="password-modal-message">To confirm, please enter your login password:</p>
+            <div class="input-group" style="margin: 1.5rem 0;">
+                <span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                        fill="currentColor" viewBox="0 0 256 256">
+                        <path
+                            d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96v96a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-80,84a12,12,0,1,1,12-12A12,12,0,0,1,128,164Zm32-84H96V56a32,32,0,0,1,64,0Z">
+                        </path>
+                    </svg></span>
+                <input id="password-modal-input" class="input" type="password" placeholder="Password" />
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="password-modal-cancel" class="btn ghost">Cancel</button>
+                <button id="password-modal-confirm" class="btn danger">Confirm Reset</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- App State & Constants ---
         const SESSION_KEY = 'talyexp_v1:session';
@@ -400,11 +460,14 @@
         const savingsBtn = document.getElementById('savingsBtn');
         const returnsBtn = document.getElementById('returnsBtn'); // --- NEW ---
         const payablesBtn = document.getElementById('payablesBtn'); // 👈 ADDED
+        const contactBtn = document.getElementById('contactBtn'); // --- NEW ---
+        const themeToggleBtn = document.getElementById('themeToggleBtn'); // --- NEW ---
         const homeView = document.getElementById('home-view');
         const transactionsView = document.getElementById('transactions-view');
         const savingsView = document.getElementById('savings-view');
         const returnsView = document.getElementById('returns-view'); // --- NEW ---
         const payablesView = document.getElementById('payables-view'); // 👈 ADDED
+        const contactView = document.getElementById('contact-view'); // --- NEW ---
 
         const titleEl = document.getElementById('title');
         const amountEl = document.getElementById('amount');
@@ -444,6 +507,10 @@
         const payablesGrid = document.getElementById('payablesGrid'); // 👈 ADDED
         const payablesSearch = document.getElementById('payablesSearch'); // 👈 ADDED
 
+        // --- NEW: Contact Form Elements ---
+        const contactForm = document.getElementById('contact-form');
+        const contactName = document.getElementById('contact-name');
+        const contactPhone = document.getElementById('contact-phone');
 
         const totalAll = document.getElementById('totalAll');
         const totalMonth = document.getElementById('totalMonth');
@@ -478,6 +545,13 @@
         const hamburgerBtn = document.getElementById('hamburger-btn');
         const navLinks = document.getElementById('nav-links');
 
+        // --- NEW: Password Modal Elements ---
+        const passwordModal = document.getElementById('password-modal');
+        const passwordModalInput = document.getElementById('password-modal-input');
+        const passwordModalConfirm = document.getElementById('password-modal-confirm');
+        const passwordModalCancel = document.getElementById('password-modal-cancel');
+
+
         // --- Utility Functions ---
         const numberFormat = (n) => Number(n).toLocaleString('en-IN', {
             style: 'decimal',
@@ -485,7 +559,20 @@
             maximumFractionDigits: 2
         });
         const formatDate = (d) => new Date(d).toLocaleDateString('en-GB');
+
+
         const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        // -------
+        // --- NEW: Add this debounce utility function ---
+        function debounce(func, delay) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+        // -------
 
         // --- Authentication ---
         const isLoggedIn = () => !!sessionStorage.getItem(SESSION_KEY);
@@ -605,14 +692,16 @@
             savingsView.style.display = 'none';
             returnsView.style.display = 'none'; // --- NEW ---
             payablesView.style.display = 'none'; // 👈 ADDED
+            contactView.style.display = 'none'; // --- NEW ---
             homeBtn.classList.remove('active', 'ghost');
             txBtn.classList.remove('active', 'ghost');
             savingsBtn.classList.remove('active', 'ghost');
             returnsBtn.classList.remove('active', 'ghost'); // --- NEW ---
             payablesBtn.classList.remove('active', 'ghost'); // 👈 ADDED
+            contactBtn.classList.remove('active', 'ghost'); // --- NEW ---
 
             // --- NEW: Add 'ghost' to all buttons first ---
-            [homeBtn, txBtn, savingsBtn, returnsBtn, payablesBtn].forEach(btn => btn.classList.add('ghost')); // 👈 UPDATED
+            [homeBtn, txBtn, savingsBtn, returnsBtn, payablesBtn, contactBtn].forEach(btn => btn.classList.add('ghost')); // 👈 UPDATED
 
             if (viewId === 'home') {
                 homeView.style.display = 'block';
@@ -641,6 +730,10 @@
                 payablesBtn.classList.add('active');
                 payablesBtn.classList.remove('ghost');
                 renderPayables();
+            } else if (viewId === 'contact') { // --- NEW ---
+                contactView.style.display = 'block';
+                contactBtn.classList.add('active');
+                contactBtn.classList.remove('ghost');
             }
         }
 
@@ -1039,7 +1132,7 @@
                 // --- FIX: Correctly reopen modal ---
                 const monthLabel = txModalTitle.textContent.split(' - ')[0];
                 const monthKey = Object.keys(groupedExpenses).find(key => groupedExpenses[key].label === monthLabel);
-                if (monthKey && groupedExpenses[monthKey].transactions.length > 0) {
+                if (monthKey && groupedExpenses[key].transactions.length > 0) {
                     showMonthDetails(monthKey, 'expense'); // Re-open modal if items remain
                 } else {
                     txModal.style.display = 'none';
@@ -1059,7 +1152,7 @@
                 await loadDataAndRender(); // Reloads all data
                 const monthLabel = txModalTitle.textContent.split(' - ')[0];
                 const monthKey = Object.keys(groupedSavings).find(key => groupedSavings[key].label === monthLabel);
-                if (monthKey && groupedSavings[monthKey].items.length > 0) {
+                if (monthKey && groupedSavings[key].items.length > 0) {
                     showMonthDetails(monthKey, 'saving'); // Re-open modal if items remain
                 } else {
                     txModal.style.display = 'none'; // Close modal if no items remain
@@ -1162,7 +1255,32 @@
             chartInstances[canvasId] = new Chart(ctx, { type, data, options });
         }
 
-        const chartDefaultOptions = { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#FFFFFF' }, grid: { color: 'rgba(255,255,255,0.1)' } }, x: { ticks: { color: '#FFFFFF' }, grid: { color: 'rgba(255,255,255,0.1)' } } } };
+        // --- NEW: Replaced const with a function to get dynamic colors ---
+        function getChartBaseOptions() {
+            const isLight = document.body.classList.contains('light-mode');
+            const gridColor = isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
+            const tickColor = isLight ? '#0f172a' : '#FFFFFF';
+
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: {
+                    legend: {
+                        display: false,
+                        labels: { color: tickColor } // Apply color here
+                    },
+                    title: { // Default title settings
+                        display: true,
+                        color: tickColor
+                    }
+                },
+                scales: {
+                    y: { ticks: { color: tickColor }, grid: { color: gridColor } },
+                    x: { ticks: { color: tickColor }, grid: { color: gridColor } }
+                }
+            };
+        }
 
         function renderMonthlyBarChart() {
             const labels = [], dataPoints = [], now = new Date();
@@ -1184,7 +1302,13 @@
             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
             gradient.addColorStop(0, 'rgba(110, 231, 183, 0.8)');
             gradient.addColorStop(1, 'rgba(110, 231, 183, 0.1)');
-            createChart('monthlyBarChart', 'bar', { labels, datasets: [{ label: 'Monthly Spend', data: dataPoints, backgroundColor: gradient, borderColor: 'var(--accent)', borderWidth: 1 }] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Last 6 Months Spend', color: '#FFFFFF' } } });
+
+            // --- UPDATE: Use getChartBaseOptions() ---
+            const baseOptions = getChartBaseOptions();
+            createChart('monthlyBarChart', 'bar',
+                { labels, datasets: [{ label: 'Monthly Spend', data: dataPoints, backgroundColor: gradient, borderColor: 'var(--accent)', borderWidth: 1 }] },
+                { ...baseOptions, plugins: { ...baseOptions.plugins, title: { ...baseOptions.plugins.title, text: 'Last 6 Months Spend' } } }
+            );
         }
 
         function renderCategoryBarChart() {
@@ -1192,14 +1316,26 @@
             const categoryTotals = data.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
             const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
             const colors = ["#60a5fa", "#fbbf24", "#fb7185", "#a78bfa", "#f87171", "#6ee7b7", "#f472b6"];
-            createChart('categoryBarChart', 'bar', { labels: sorted.map(item => item[0]), datasets: [{ label: 'By Category', data: sorted.map(item => item[1]), backgroundColor: colors }] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Spend by Category (Selected Month)', color: '#FFFFFF' } } });
+
+            // --- UPDATE: Use getChartBaseOptions() ---
+            const baseOptions = getChartBaseOptions();
+            createChart('categoryBarChart', 'bar',
+                { labels: sorted.map(item => item[0]), datasets: [{ label: 'By Category', data: sorted.map(item => item[1]), backgroundColor: colors }] },
+                { ...baseOptions, plugins: { ...baseOptions.plugins, title: { ...baseOptions.plugins.title, text: 'Spend by Category (Selected Month)' } } }
+            );
         }
 
         function renderPieChart() {
             const data = getFilteredExpenses(); // This now includes 'PG Rent'
             const categoryTotals = data.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
             const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
-            createChart('pieChart', 'pie', { labels: sorted.map(item => item[0]), datasets: [{ data: sorted.map(item => item[1]), backgroundColor: ["#6ee7b7", "#60a5fa", "#fbbf24", "#fb7185", "#a78bfa", "#f472b6", "#f87171"] }] }, { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: '#FFFFFF' } } } });
+
+            // --- UPDATE: Use getChartBaseOptions() ---
+            const baseOptions = getChartBaseOptions();
+            createChart('pieChart', 'pie',
+                { labels: sorted.map(item => item[0]), datasets: [{ data: sorted.map(item => item[1]), backgroundColor: ["#6ee7b7", "#60a5fa", "#fbbf24", "#fb7185", "#a78bfa", "#f472b6", "#f87171"] }] },
+                { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: baseOptions.plugins.legend.labels.color } } } }
+            );
         }
 
         function renderDonutChart() {
@@ -1209,14 +1345,24 @@
             const incomeForSelectedMonth = monthlyIncomes[monthKey] || 0;
             const budget = incomeForSelectedMonth;
 
+            // --- UPDATE: Use getChartBaseOptions() ---
+            const baseOptions = getChartBaseOptions();
+            const legendOptions = { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: baseOptions.plugins.legend.labels.color } } } };
+
             if (budget > 0) {
                 const monthSavings = getFilteredSavings().reduce((sum, s) => sum + Number(s.amount), 0);
                 const remaining = Math.max(0, budget - spent - monthSavings);
-                createChart('donutChart', 'doughnut', { labels: ['Spent', 'Saved', 'Remaining'], datasets: [{ data: [spent, monthSavings, remaining], backgroundColor: ['#fb7185', '#a78bfa', '#60a5fa'], borderWidth: 0 }] }, { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: '#FFFFFF' } } } });
+                createChart('donutChart', 'doughnut',
+                    { labels: ['Spent', 'Saved', 'Remaining'], datasets: [{ data: [spent, monthSavings, remaining], backgroundColor: ['#fb7185', '#a78bfa', '#60a5fa'], borderWidth: 0 }] },
+                    legendOptions
+                );
             } else {
                 const categoryTotals = data.reduce((acc, { category, amount }) => { acc[category] = (acc[category] || 0) + Number(amount); return acc; }, {});
                 const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
-                createChart('donutChart', 'doughnut', { labels: sorted.map(item => item[0]), datasets: [{ data: sorted.map(item => item[1]), backgroundColor: ["#fb7185", "#60a5fa", "#fbbf24", "#a78bfa", "#6ee7b7", "#f472b6"], borderWidth: 0 }] }, { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: '#FFFFFF' } } } });
+                createChart('donutChart', 'doughnut',
+                    { labels: sorted.map(item => item[0]), datasets: [{ data: sorted.map(item => item[1]), backgroundColor: ["#fb7185", "#60a5fa", "#fbbf24", "#a78bfa", "#6ee7b7", "#f472b6"], borderWidth: 0 }] },
+                    legendOptions
+                );
             }
         }
 
@@ -1238,7 +1384,13 @@
             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
             gradient.addColorStop(0, 'rgba(167, 139, 250, 0.8)');
             gradient.addColorStop(1, 'rgba(167, 139, 250, 0.1)');
-            createChart('savingsBarChart', 'bar', { labels, datasets: [{ label: 'Monthly Savings', data: dataPoints, backgroundColor: gradient, borderColor: '#a78bfa', borderWidth: 1 }] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Last 6 Months Savings', color: '#FFFFFF' } } });
+
+            // --- UPDATE: Use getChartBaseOptions() ---
+            const baseOptions = getChartBaseOptions();
+            createChart('savingsBarChart', 'bar',
+                { labels, datasets: [{ label: 'Monthly Savings', data: dataPoints, backgroundColor: gradient, borderColor: '#a78bfa', borderWidth: 1 }] },
+                { ...baseOptions, plugins: { ...baseOptions.plugins, title: { ...baseOptions.plugins.title, text: 'Last 6 Months Savings' } } }
+            );
         }
 
         // --- UPDATE: New Cash Flow Overview Chart ---
@@ -1268,6 +1420,8 @@
             const canvas = document.getElementById('cashFlowOverviewChart');
             if (!canvas) return;
 
+            // --- UPDATE: Use getChartBaseOptions() ---
+            const baseOptions = getChartBaseOptions();
             createChart('cashFlowOverviewChart', 'bar', {
                 labels,
                 datasets: [
@@ -1294,15 +1448,15 @@
                     }
                 ]
             }, {
-                ...chartDefaultOptions,
+                ...baseOptions,
                 plugins: {
-                    ...chartDefaultOptions.plugins,
-                    title: { display: true, text: 'Last 6 Months: Income vs. Spend vs. Savings', color: '#FFFFFF' },
-                    legend: { display: true, position: 'bottom', labels: { color: '#FFFFFF' } } // Turn on legend for this chart
+                    ...baseOptions.plugins,
+                    title: { ...baseOptions.plugins.title, text: 'Last 6 Months: Income vs. Spend vs. Savings' },
+                    legend: { display: true, position: 'bottom', labels: { color: baseOptions.plugins.legend.labels.color } } // Turn on legend
                 },
                 scales: {
-                    y: { ...chartDefaultOptions.scales.y, beginAtZero: true },
-                    x: { ...chartDefaultOptions.scales.x }
+                    y: { ...baseOptions.scales.y, beginAtZero: true },
+                    x: { ...baseOptions.scales.x }
                 }
             });
         }
@@ -1314,8 +1468,12 @@
             data = data.filter(e => e.category !== 'Rent' && e.category !== 'PG Rent' && e.category !== 'RENT' && e.category !== 'rent');     //-------imp code update for removing the data of rent from graph------
 
             let labels = [], dataPoints = [];
+
+            // --- UPDATE: Use getChartBaseOptions() ---
+            const baseOptions = getChartBaseOptions();
+
             if (data.length === 0) {
-                createChart('cashFlowTrendChart', 'line', { labels: [], datasets: [] }, { ...chartDefaultOptions, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Cash Flow Trend', color: '#FFFFFF' } } });
+                createChart('cashFlowTrendChart', 'line', { labels: [], datasets: [] }, { ...baseOptions, plugins: { ...baseOptions.plugins, title: { ...baseOptions.plugins.title, text: 'Cash Flow Trend' } } });
                 return;
             }
 
@@ -1339,7 +1497,11 @@
             const gradient = ctx.createLinearGradient(0, 0, 0, 200);
             gradient.addColorStop(0, 'rgba(110, 231, 183, 0.5)');
             gradient.addColorStop(1, 'rgba(110, 231, 183, 0.05)');
-            createChart('cashFlowTrendChart', 'line', { labels, datasets: [{ label: 'Spend Trend', data: dataPoints, borderColor: '#6ee7b7', backgroundColor: gradient, fill: true, tension: 0.3, borderWidth: 2 }] }, { responsive: true, maintainAspectRatio: false, plugins: { ...chartDefaultOptions.plugins, title: { display: true, text: 'Daily Spend (Selected Month)                                                                                     (Note: We are not including the RENT related things in this graph for better graph UI)', color: '#FFFFFF' } }, scales: chartDefaultOptions.scales });
+
+            createChart('cashFlowTrendChart', 'line',
+                { labels, datasets: [{ label: 'Spend Trend', data: dataPoints, borderColor: '#6ee7b7', backgroundColor: gradient, fill: true, tension: 0.3, borderWidth: 2 }] },
+                { ...baseOptions, plugins: { ...baseOptions.plugins, title: { ...baseOptions.plugins.title, text: 'Daily Spend (Selected Month)                                                (Note: We are not including the RENT related things in this graph for better graph UI)' } }, scales: baseOptions.scales }
+            );
         }
 
         function generateSmartInsights() {
@@ -1534,10 +1696,64 @@
             // return false;
         }
 
+        // --- NEW: Helper function to get password from modal ---
+        function getPasswordConfirmation() {
+            passwordModal.style.display = 'flex';
+            passwordModalInput.value = '';
+            passwordModalInput.focus();
+
+            return new Promise((resolve) => {
+                const confirmHandler = () => {
+                    cleanup();
+                    resolve(passwordModalInput.value);
+                };
+
+                const cancelHandler = () => {
+                    cleanup();
+                    resolve(null); // Resolve with null if cancelled
+                };
+
+                const keypressHandler = (e) => {
+                    if (e.key === 'Enter') {
+                        confirmHandler();
+                    }
+                };
+
+                const cleanup = () => {
+                    passwordModalConfirm.removeEventListener('click', confirmHandler);
+                    passwordModalCancel.removeEventListener('click', cancelHandler);
+                    passwordModal.removeEventListener('click', modalClickHandler);
+                    passwordModalInput.removeEventListener('keypress', keypressHandler);
+                    passwordModal.style.display = 'none';
+                };
+
+                const modalClickHandler = (e) => {
+                    if (e.target === passwordModal) {
+                        cancelHandler();
+                    }
+                };
+
+                passwordModalConfirm.addEventListener('click', confirmHandler);
+                passwordModalCancel.addEventListener('click', cancelHandler);
+                passwordModal.addEventListener('click', modalClickHandler);
+                passwordModalInput.addEventListener('keypress', keypressHandler);
+            });
+        }
+
+
         async function handleFullReset() {
             if (confirm('DANGER! This will permanently delete all your data (expenses, savings, returns, and payables). Are you sure?')) {
-                const password = prompt("To confirm this action, please enter your login password:");
-                if (!password) { alert("Password not entered. Reset cancelled."); return; }
+
+                // --- UPDATE: Replaced prompt() with custom modal ---
+                const password = await getPasswordConfirmation();
+                // const password = prompt("To confirm this action, please enter your login password:");
+                // --- END UPDATE ---
+
+                if (!password) {
+                    // User cancelled the modal
+                    alert("Password not entered. Reset cancelled.");
+                    return;
+                }
                 const user = sessionStorage.getItem(SESSION_KEY);
                 if (!user) { alert('No user session found. Please log in again.'); return; }
                 try {
@@ -1547,6 +1763,11 @@
                         body: JSON.stringify({ username: user, password: password })
                     });
                     if (!verifyRes.ok) { alert('Invalid credentials. Cannot reset.'); return; }
+
+                    // --- UPDATE: Add loading state to modal button ---
+                    passwordModalConfirm.disabled = true;
+                    passwordModalConfirm.textContent = 'Resetting...';
+
                     alert("Password confirmed. Proceeding with data reset.");
                     // --- NEW: Add payables delete ---
                     const [expRes, incRes, saveRes, retRes, payRes, metaRes] = await Promise.all([
@@ -1557,40 +1778,27 @@
                         fetch(`/api/payables/user/${user}`, { method: 'DELETE' }), // --- NEW ---
                         fetch('/api/meta/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user }) })
                     ]);
+
+                    // --- UPDATE: Reset button text ---
+                    passwordModalConfirm.disabled = false;
+                    passwordModalConfirm.textContent = 'Confirm Reset';
+
                     if (!expRes.ok || !incRes.ok || !saveRes.ok || !retRes.ok || !payRes.ok || !metaRes.ok) { // --- NEW ---
                         throw new Error(`Reset failed on the server after password verification.`);
                     }
                     alert('All your application data has been reset successfully.');
                     location.reload();
                 } catch (err) {
+                    // --- UPDATE: Reset button text on error ---
+                    passwordModalConfirm.disabled = false;
+                    passwordModalConfirm.textContent = 'Confirm Reset';
+
                     console.error("Reset error:", err);
                     alert(`An error occurred during reset. Please try again.`);
                 }
             }
         }
 
-        // --- UPDATE: This function is no longer called by any button ---
-        /*
-        function handleArchiveAndReset() {
-            const user = sessionStorage.getItem(SESSION_KEY);
-            if (!user) { alert('No user in session'); return; }
-            // Note: Archive only includes expenses.
-            generatePdfReport(expenses, `talyexp_full_archive_${new Date().toISOString().slice(0, 10)}.pdf`, "Full Data Archive").then(() => {
-                Promise.all([
-                    fetch(`/api/expenses/user/${user}`, { method: 'DELETE' }),
-                    fetch(`/api/income/user/${user}`, { method: 'DELETE' }),
-                    fetch(`/api/savings/user/${user}`, { method: 'DELETE' }),
-                    fetch(`/api/returns/user/${user}`, { method: 'DELETE' }), // --- NEW ---
-                    fetch(`/api/payables/user/${user}`, { method: 'DELETE' }), // --- NEW ---
-                    fetch('/api/meta/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user }) })
-                ]).then(async ([a, b, c, d, e, f]) => { // --- NEW ---
-                    if (!a.ok || !b.ok || !c.ok || !d.ok || !e.ok || !f.ok) throw new Error('Reset failed after archive.');
-                    alert('Archive downloaded and all data has been reset.');
-                    location.reload();
-                }).catch(err => alert(err.message));
-            });
-        }
-        */
 
         // --- Voice Input Logic ---
         function setupVoiceInput() {
@@ -1669,8 +1877,28 @@
             downloadPeriod.value = currentMonthKey;
         }
 
+        // --- NEW: Theme Toggling ---
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('talyexp_theme', isLight ? 'light' : 'dark');
+
+            // Re-render all charts to apply new theme colors
+            // We only need to do this if the home view is active
+            if (homeView.style.display === 'block') {
+                renderAllCharts();
+            }
+        }
+
         // --- App Initialization ---
         function init() {
+            // --- NEW: Load saved theme ---
+            const savedTheme = localStorage.getItem('talyexp_theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+            }
+            // --- End new code ---
+
             dateEl.value = new Date().toISOString().slice(0, 10);
             returnDateEl.value = new Date().toISOString().slice(0, 10); // --- NEW ---
             payableDateEl.value = new Date().toISOString().slice(0, 10); // --- NEW ---
@@ -1698,6 +1926,8 @@
             savingsBtn.addEventListener('click', () => showView('savings'));
             returnsBtn.addEventListener('click', () => showView('returns')); // --- NEW ---
             payablesBtn.addEventListener('click', () => showView('payables')); // 👈 ADDED
+            contactBtn.addEventListener('click', () => showView('contact')); // --- NEW ---
+            themeToggleBtn.addEventListener('click', toggleTheme); // --- NEW ---
             chartPeriod.addEventListener('change', renderAllCharts);
             dateEl.addEventListener('change', renderIncomeForSelectedMonth);
 
@@ -1716,6 +1946,58 @@
                 payableFormContainer.style.display = 'block';
                 toggleReturnBtn.classList.remove('active');
                 togglePayableBtn.classList.add('active');
+            });
+
+
+            // --- UPDATE: Contact Form Logic (now saves to server) ---
+            contactForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nameVal = contactName.value.trim();
+                const phoneVal = contactPhone.value.trim();
+                if (!nameVal || !phoneVal) {
+                    alert('Please fill in the required fields (Name and Phone Number).');
+                    return;
+                }
+
+                // --- NEW: Get other form values ---
+                const emailVal = document.getElementById('contact-email').value.trim();
+                const queryVal = document.getElementById('contact-query').value.trim();
+                const userVal = sessionStorage.getItem(SESSION_KEY);
+
+                // --- NEW: Find the submit button to disable it ---
+                const submitBtn = contactForm.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+
+                try {
+                    const res = await fetch('/api/contact', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user: userVal,
+                            name: nameVal,
+                            phone: phoneVal,
+                            email: emailVal,
+                            query: queryVal
+                        })
+                    });
+
+                    if (!res.ok) {
+                        const errData = await res.json();
+                        throw new Error(errData.error || 'Failed to submit form.');
+                    }
+
+                    alert('Thank you for your message! We will get back to you shortly.');
+                    contactForm.reset();
+                    showView('home');
+
+                } catch (err) {
+                    alert(`Error: ${err.message}`);
+                } finally {
+                    // --- NEW: Re-enable button ---
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit';
+                }
             });
 
             addBtn.addEventListener('click', async () => {
@@ -1865,6 +2147,17 @@
             calculatorBtn.addEventListener('click', () => { calculatorModal.style.display = 'flex'; });
             calculatorModal.addEventListener('click', (e) => { if (e.target === calculatorModal) calculatorModal.style.display = 'none'; });
 
+            // ---------
+            // // --- NEW: Add this line to fix resizing ---
+            window.addEventListener('resize', debounce(renderAllCharts, 250));
+            // // ---------
+
+            // This will cause a very bad user experience. Not recommended.
+            // window.addEventListener('resize', () => {
+            //     location.reload();
+            // });
+
+
             setupCalculator();
             setupVoiceInput();
 
@@ -1883,6 +2176,7 @@
         }
 
         init();
+
     </script>
 
 </body>

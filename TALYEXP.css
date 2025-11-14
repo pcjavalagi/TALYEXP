@@ -1,920 +1,1152 @@
 :root {
-            --bg: #0f1724;
-            --card: #0b1220;
-            --muted: #9aa4b2;
-            --accent: #6ee7b7;
-            --danger: #ff7a7a;
-            --glass: rgba(255, 255, 255, 0.03);
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-        }
+    /* --- UPDATE: Expanded variables for theme --- */
+    --bg: #0f1724;
+    --card: #0b1220;
+    --text-primary: #e6eef6;
+    --text-muted: #9aa4b2;
+    --accent: #6ee7b7;
+    --danger: #ff7a7a;
+    --glass: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.04);
+    --input-bg: rgba(0, 0, 0, 0.45);
+    --card-bg-translucent: rgba(11, 18, 32, 0.6);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
 
-        * {
-            box-sizing: border-box
-        }
+* {
+    box-sizing: border-box
+}
 
-        body {
-            margin: 0;
-            background-color: #071024;
-            color: #e6eef6;
-            height: 100vh; /* --- UPDATE: Was min-height --- */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            overflow: auto; /* --- UPDATE: Changed to auto for mobile-first --- */
-        }
+body {
+    margin: 0;
+    /* --- UPDATE: Use variables --- */
+    background-color: var(--bg);
+    color: var(--text-primary);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow: auto;
+}
 
-        /* --- UPDATE: Apply overflow:hidden only on desktop --- */
-        @media (min-width: 981px) {
-            body {
-                overflow: hidden;
-            }
-        }
-
-
-        /* Splash Screen Styles */
-        #splash-screen {
-            position: fixed;
-            inset: 0;
-            background: var(--bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            transition: opacity 0.5s ease-out;
-        }
-
-        .splash-logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #042028;
-            font-weight: 700;
-            font-size: 32px;
-            margin-bottom: 1rem;
-        }
-
-        .splash-title {
-            font-size: 28px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        /* --- New Creative Login Screen --- */
-        .login-screen {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-            background-color: #071024;
-            background-image:
-                radial-gradient(circle at 15% 50%, rgba(110, 231, 183, 0.1), transparent 40%),
-                radial-gradient(circle at 85% 30%, rgba(96, 165, 250, 0.1), transparent 40%);
-            overflow: hidden;
-        }
-
-        .login-box {
-            width: 100%;
-            max-width: 380px;
-            padding: 2.5rem 2rem;
-            border-radius: 16px;
-            background: rgba(11, 18, 32, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 40px rgba(2, 6, 23, 0.5);
-            text-align: center;
-        }
-
-        .login-logo {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            margin: 0 auto 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #042028;
-            font-weight: 700;
-            font-size: 24px;
-        }
-
-        .login-box h2 {
-            margin: 0 0 8px;
-        }
-
-        .login-box p {
-            margin: 0 0 2rem;
-            color: var(--muted);
-        }
-
-        .input-group {
-            position: relative;
-            margin-bottom: 1.25rem;
-        }
-
-        .input {
-            width: 100%;
-            padding: 12px 12px 12px 40px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(0, 0, 0, 0.2);
-            color: #fff;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .input:focus {
-            border-color: var(--accent);
-        }
-
-        .input-icon {
-            position: absolute;
-            top: 50%;
-            left: 12px;
-            transform: translateY(-50%);
-            color: var(--muted);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            background: var(--accent);
-            color: #042028;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(110, 231, 183, 0.3);
-        }
-
-        .auth-toggle {
-            margin-top: 1.5rem;
-            font-size: 14px;
-            color: var(--muted);
-        }
-
-        .auth-toggle a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* Main App Layout */
-        .app-wrap {
-            width: 100%;
-            max-width: 1700px;
-            height: 100%; /* --- UPDATE: Was 100vh --- */
-            max-height: 900px; /* --- UPDATE: Increased max-height --- */
-            display: none;
-            flex-direction: column;
-        }
-
-        .card {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
-            border-radius: 14px;
-            padding: 18px;
-            box-shadow: 0 6px 20px rgba(2, 6, 23, 0.6);
-        }
-
-        .app-grid {
-            display: grid;
-            /* --- UPDATE: More fluid grid --- */
-            grid-template-columns: minmax(350px, 420px) 1fr;
-            gap: 20px;
-            height: 100%;
-        }
-
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            flex-shrink: 0;
-            flex-wrap: nowrap;
-        }
-
-        main {
-            flex-grow: 1;
-            overflow: hidden;
-        }
-
-        #home-view,
-        #transactions-view,
-        #savings-view,
-        #returns-view { /* --- UPDATE: Added returns-view --- */
-            height: 100%;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        /* --- UPDATE: Better header layout --- */
-        .brand>div:last-child {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
-        }
-
-        #user-greeting {
-            font-size: 14px;
-            font-weight: 500;
-            position: static; /* --- UPDATE: Removed relative positioning --- */
-        }
+/* --- UPDATE: Apply overflow:hidden only on desktop --- */
+@media (min-width: 981px) {
+    body {
+        overflow: hidden;
+    }
+}
 
 
-        .logo {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #042028;
-            font-weight: 700;
-        }
+/* Splash Screen Styles */
+#splash-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: opacity 0.5s ease-out;
+}
 
-        h1 {
-            font-size: 18px;
-            margin: 0;
-        }
+.splash-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #042028;
+    font-weight: 700;
+    font-size: 32px;
+    margin-bottom: 1rem;
+}
 
-        .subtitle {
-            font-size: 13px;
-            color: var(--muted);
-        }
+.splash-title {
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
 
-        .nav-buttons .btn.active {
-            background: var(--accent);
-            color: #042028;
-        }
+/* --- New Creative Login Screen --- */
+.login-screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    /* --- UPDATE: Use variable --- */
+    background-color: var(--bg); 
+    background-image:
+        radial-gradient(circle at 15% 50%, rgba(110, 231, 183, 0.1), transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(96, 165, 250, 0.1), transparent 40%);
+    overflow: hidden;
+}
 
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-left: auto;
-        }
+.login-box {
+    width: 100%;
+    max-width: 380px;
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    /* --- UPDATE: Use variables --- */
+    background: var(--card-bg-translucent);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 40px rgba(2, 6, 23, 0.5);
+    text-align: center;
+}
 
-        .main-nav {
-            position: relative;
-        }
+.login-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #042028;
+    font-weight: 700;
+    font-size: 24px;
+}
 
-        #hamburger-btn {
-            background: none;
-            border: none;
-            color: var(--muted);
-            cursor: pointer;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* --- UPDATE: Removed relative positioning --- */
-        }
+.login-box h2 {
+    margin: 0 0 8px;
+}
 
-        #nav-links {
-            display: none;
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            background-color: var(--card);
-            border: 1px solid var(--glass);
-            border-radius: 12px;
-            flex-direction: column;
-            padding: 10px;
-            gap: 10px;
-            width: 180px;
-            z-index: 20;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-        }
+.login-box p {
+    margin: 0 0 2rem;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+}
 
-        #nav-links.active {
-            display: flex;
-        }
+.input-group {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
 
-        #nav-links .btn {
-            width: 100%;
-            text-align: left;
-            justify-content: flex-start;
-        }
+.input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    border-radius: 8px;
+    /* --- UPDATE: Use variables --- */
+    border: 1px solid var(--glass-border);
+    background: var(--input-bg);
+    color: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
 
-        .left-column,
-        .right-column {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            overflow-y: auto;
-            padding-right: 8px;
-        }
+.input:focus {
+    border-color: var(--accent);
+}
 
-        label {
-            display: block;
-            font-size: 13px;
-            color: var(--muted);
-            margin-bottom: 6px;
-        }
+.input-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+}
 
-        .form-row {
-            display: flex;
-            gap: 10px;
-        }
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: #042028;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
 
-        input[type=text],
-        input[type=number],
-        input[type=date],
-        input[type=month],
-        select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            background: rgba(0, 0, 0, 0.45);
-            color: inherit;
-            outline: none;
-        }
-        input[type=date],
-        input[type=month],
-        select {
-            background-color:#6ee7b7;
-            color: black;
-            -webkit-appearance: none; /* --- UPDATE: Better appearance --- */
-            -moz-appearance: none;
-            appearance: none;
-        }
-        select {
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0.02));
-        }
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(110, 231, 183, 0.3);
+}
 
-        .btn {
-            background: var(--accent);
-            border: none;
-            color: #042028;
-            padding: 10px 12px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
+.auth-toggle {
+    margin-top: 1.5rem;
+    font-size: 14px;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+}
 
-        .btn.danger {
-            background-color: transparent;
-            border: 1px solid var(--danger);
-            color: var(--danger);
-        }
+.auth-toggle a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+}
 
-        .btn.danger:hover {
-            background-color: var(--danger);
-            color: #fff;
-        }
+/* Main App Layout */
+.app-wrap {
+    width: 100%;
+    max-width: 1700px;
+    height: 100%;
+    max-height: 900px;
+    display: none;
+    flex-direction: column;
+}
 
-        .btn.ghost {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            color: var(--accent);
-        }
+.card {
+    /* --- UPDATE: Use variables --- */
+    background: var(--card);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 6px 20px rgba(2, 6, 23, 0.6);
+}
 
-        .small {
-            padding: 8px 10px;
-            font-size: 13px;
-        }
+.app-grid {
+    display: grid;
+    grid-template-columns: minmax(350px, 420px) 1fr;
+    gap: 20px;
+    height: 100%;
+}
 
-        .summary {
-            display: flex;
-            gap: 12px;
-        }
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+}
 
-        .stat {
-            flex: 1;
-            padding: 12px;
-            border-radius: 10px;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
-        }
+main {
+    flex-grow: 1;
+    overflow: hidden;
+}
 
-        .stat h3 {
-            margin: 0;
-            font-size: 13px;
-            color: var(--muted);
-        }
-
-        .stat p {
-            margin: 6px 0 0;
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        .chart-card {
-            padding: 12px;
-            border-radius: 10px;
-            background: var(--glass);
-            min-height: 180px;
-        }
-
-        #downloadPeriod {
-            color: rgb(19, 126, 114);
-            font-weight: 600;
-            width: 120px;
-        }
-
-        /* Transactions Page */
-       /* Page Views */
+#home-view,
 #transactions-view,
 #savings-view,
 #returns-view,
-#payables-view { /* 👈 ADD THESE LINES */
-    display: none;
+#payables-view,
+#contact-view { /* --- NEW: Added contact-view --- */
+    height: 100%;
 }
 
-        #chartPeriod {
-            color: rgb(19, 126, 114);
-            width: 200px;
-            font-weight: 600;
-        }
-
-        #downloadBtn {
-            width: 130px;
-        }
-
-        #fullResetBtn {
-            width: 120px;
-        }
-
-        .tx-list-container {
-            height: calc(100% - 60px);
-            overflow-y: auto;
-            padding-right: 6px;
-        }
-
-        .tx-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
-        }
-
-        .month-card {
-            background: var(--glass);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 12px;
-            padding: 16px;
-            cursor: pointer;
-            transition: transform 0.2s ease, background 0.2s ease;
-        }
-
-        .month-card:hover {
-            transform: translateY(-4px);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .month-card h3 {
-            margin: 0 0 4px;
-            color: var(--accent);
-        }
-
-        .month-card p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 14px;
-        }
-
-
-        .expense-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            background: var(--glass);
-            border: 1px solid rgba(255, 255, 255, 0.02);
-        }
-
-        .expense-left {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .cat-badge {
-            min-width: 44px;
-            height: 44px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .meta {
-            font-size: 13px;
-            color: var(--muted);
-        }
-
-        .amount {
-            font-weight: 700;
-        }
-
-        .controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .search-input {
-            padding: 8px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            background: transparent;
-            color: inherit;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        /* Reset Modal/Banner */
-        .reset-modal,
-        .tx-modal {
-            position: fixed;
-            inset: 0;
-            z-index: 60;
-            background: rgba(7, 16, 36, 0.9);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .reset-box,
-        .tx-modal-content {
-            background: var(--card);
-            padding: 24px;
-            border-radius: 12px;
-            text-align: center;
-            max-width: 450px;
-        }
-
-        .tx-modal-content {
-            max-width: 1400px;
-            width: 100%;
-            text-align: left;
-            position: relative;
-            /* --- UPDATE: Removed bottom positioning --- */
-        }
-
-        .tx-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .tx-modal-header h2 {
-            margin: 0;
-        }
-
-        .close-modal-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: var(--muted);
-            cursor: pointer;
-        }
-
-        .tx-modal-body {
-            max-height: 400px;
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-
-        footer {
-            grid-column: 1/-1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            flex-shrink: 0;
-        }
-
-        /* --- Smart Insights --- */
-        #smart-insights h3 {
-            margin-top: 0;
-        }
-
-        #smart-insights p {
-            font-size: 14px;
-            color: var(--muted);
-            margin: 8px 0;
-            padding-left: 12px;
-            border-left: 2px solid var(--accent);
-        }
-
-        #smart-insights p.positive {
-            border-color: var(--accent);
-        }
-
-        #smart-insights p.negative {
-            border-color: var(--danger);
-        }
-
-        #smart-insights p.info {
-            border-color: #60a5fa;
-        }
-
-
-        /* --- Calculator Modal --- */
-        #calculator-modal {
-            align-items: flex-start;
-        }
-
-        #calculator {
-            width: 100%;
-            max-width: 320px;
-            margin-top: 10vh;
-            background: var(--card);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 16px;
-        }
-
-        #calc-display {
-            width: 100%;
-            padding: 16px;
-            font-size: 32px;
-            text-align: right;
-            margin-bottom: 12px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            padding-right: 16px;
-        }
-
-        .calc-keys {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
-
-        .calc-key {
-            padding: 18px;
-            font-size: 18px;
-            font-weight: 600;
-            border-radius: 10px;
-            background: var(--glass);
-            border: 1px solid transparent;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .calcbtn {
-            position: relative;
-            top: -18px;
-            left: 25px;
-            font-size: 12px;
-            height: 0px;
-        }
-
-        .calc-key:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .calc-key-op {
-            background: rgba(110, 231, 183, 0.2);
-            color: var(--accent);
-        }
-
-        .calc-key-equals {
-            grid-column: 4;
-            grid-row: 3 / 5;
-            background: var(--accent);
-            color: var(--bg);
-        }
-
-        .calc-key-zero {
-            grid-column: 1 / 3;
-        }
-
-        #voiceBtn.active {
-            background: var(--danger);
-            color: #fff;
-        }
-        /* Target the entire scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #1e1e1e;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #6ee7b7;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #388e3c;
-        }
-
-        #cashFlowTrendChart{
-            height: 300px;
-        }
-
-        .saving-month-group {
-            margin-bottom: 20px;
-        }
-        .saving-month-header {
-            color: var(--accent);
-            border-bottom: 1px solid var(--glass);
-            padding-bottom: 8px;
-            margin-bottom: 12px;
-        }
-        .saving-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: var(--glass);
-            border-radius: 8px;
-            margin-bottom: 8px;
-        }
-        .saving-item .amount {
-            color: #a78bfa;
-        }
-
-        /* --- NEW: Form Toggle Buttons --- */
-        .form-toggle-btn {
-            flex: 1;
-            border-radius: 8px 8px 0 0 !important;
-            border-bottom: none !important;
-            background: transparent;
-            border: 1px solid var(--glass);
-            border-bottom-color: var(--glass) !important;
-            color: var(--muted);
-            padding: 8px;
-            font-size: 13px;
-        }
-        .form-toggle-btn.active {
-            background: var(--glass);
-            color: var(--accent);
-            border-bottom-color: var(--card) !important; /* Hides border */
-            position: relative;
-            top: 1px;
-        }
-
-        /* Responsive Design */
-        @media (max-width:980px) {
-            body {
-                padding: 0;
-                overflow: auto;
-            }
-
-            .app-wrap {
-                height: auto;
-                max-height: none;
-                border-radius: 0;
-            }
-
-            main {
-                overflow: visible;
-            }
-
-            .app-grid {
-                grid-template-columns: 1fr;
-                height: auto;
-            }
-
-            .left-column,
-            .right-column {
-                overflow-y: visible;
-                padding-right: 0;
-            }
-        }
-
-        @media (max-width: 768px) {
-            header {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-
-            .header-right {
-                margin-left: 0;
-                width: 100%;
-                justify-content: flex-end;
-            }
-
-            /* --- UPDATE: Charts 1-col --- */
-            .charts-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .tx-modal-content {
-                bottom: auto;
-                width: 95%;
-                max-width: 95%;
-                margin-top: 5vh;
-            }
-
-            .tx-modal-body {
-                max-height: 60vh;
-            }
-
-            .expense-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .expense-item .controls {
-                margin-left: auto;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .login-box {
-                padding: 2rem 1.5rem;
-                max-width: 95%;
-            }
-
-            .form-row {
-                flex-direction: column;
-                gap: 14px;
-            }
-
-            .form-row>div {
-                width: 100%;
-            }
-
-            .summary {
-                flex-direction: column;
-            }
-
-            .brand h1 {
-                font-size: 16px;
-            }
-            /* --- UPDATE: Further header fixes --- */
-            .brand {
-                flex-wrap: wrap;
-                gap: 8px;
-                justify-content: center;
-            }
-            .header-right {
-                gap: 0.5rem;
-            }
-            .top-actions {
-                flex-wrap: wrap;
-                gap: 8px;
-                justify-content: flex-end;
-            }
-
-            .logo {
-                width: 40px;
-                height: 40px;
-            }
-        }
-
-        footer {
-            grid-column: 1/-1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            flex-shrink: 0;
-            padding: 12px;
-            height: 50px;
-            text-align: center;
-            justify-content: center;
-            color: var(--muted);
-            font-size: 14px;
-            background: var(--glass);
-            border-radius: 14px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-        
-        }
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand>div:last-child {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+#user-greeting {
+    font-size: 14px;
+    font-weight: 500;
+    position: static;
+}
+
+
+.logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #042028;
+    font-weight: 700;
+}
+
+h1 {
+    font-size: 18px;
+    margin: 0;
+}
+
+.subtitle {
+    font-size: 13px;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+}
+
+.nav-buttons .btn.active {
+    background: var(--accent);
+    color: #042028;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-left: auto;
+}
+
+.main-nav {
+    position: relative;
+}
+
+#hamburger-btn {
+    background: none;
+    border: none;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#nav-links {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    /* --- UPDATE: Use variables --- */
+    background-color: var(--card);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    flex-direction: column;
+    padding: 10px;
+    gap: 10px;
+    width: 180px;
+    z-index: 20;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+#nav-links.active {
+    display: flex;
+}
+
+#nav-links .btn {
+    width: 100%;
+    text-align: left;
+    justify-content: flex-start;
+}
+
+.left-column,
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    padding-right: 8px;
+    max-width: 100vw;
+}
+
+label {
+    display: block;
+    font-size: 13px;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+}
+
+/* --- NEW: Style for textarea --- */
+textarea.input {
+    min-height: 100px;
+    padding: 10px;
+    font-family: inherit;
+}
+
+input[type=text],
+input[type=number],
+input[type=date],
+input[type=month],
+input[type=password],
+input[type=email], /* --- NEW: Added email type --- */
+textarea, /* --- NEW: Added textarea --- */
+select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    /* --- UPDATE: Use variables --- */
+    border: 1px solid var(--glass-border);
+    background: var(--input-bg);
+    color: inherit;
+    outline: none;
+}
+
+/* --- UPDATE: Handle password input padding --- */
+.input-group input[type=password] {
+    padding-left: 40px;
+}
+/* --- NEW: Handle new form input padding --- */
+#contact-view .input {
+    padding-left: 10px;
+}
+
+
+input[type=date],
+input[type=month],
+select {
+    background-color: #6ee7b7;
+    color: black;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+select {
+    /* --- UPDATE: Use variables --- */
+    background: var(--input-bg);
+    border: 1px solid var(--glass-border);
+    color: inherit;
+}
+
+/* --- UPDATE: Re-style select for theme --- */
+#downloadPeriod, #chartPeriod {
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+}
+
+.btn {
+    background: var(--accent);
+    border: none;
+    color: #042028;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn:disabled {
+    background: var(--text-muted);
+    color: var(--bg);
+    cursor: not-allowed;
+}
+
+.btn.danger {
+    background-color: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+}
+
+.btn.danger:hover {
+    background-color: var(--danger);
+    color: #fff;
+}
+
+.btn.ghost {
+    background: transparent;
+    /* --- UPDATE: Use variable --- */
+    border: 1px solid var(--glass-border);
+    color: var(--accent);
+}
+
+.small {
+    padding: 8px 10px;
+    font-size: 13px;
+}
+
+.summary {
+    display: flex;
+    gap: 12px;
+}
+
+.stat {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--glass);
+}
+
+.stat h3 {
+    margin: 0;
+    font-size: 13px;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+}
+
+.stat p {
+    margin: 6px 0 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.chart-card {
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--glass);
+    min-height: 180px;
+}
+
+#downloadPeriod {
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-primary);
+    font-weight: 600;
+    width: 120px;
+}
+
+/* Transactions Page */
+/* Page Views */
+#transactions-view,
+#savings-view,
+#returns-view,
+#payables-view,
+#contact-view { /* --- NEW: Added contact-view --- */
+    display: none;
+    overflow-y: auto; /* --- NEW: Allow scrolling on contact page --- */
+}
+
+#chartPeriod {
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-primary);
+    width: 200px;
+    font-weight: 600;
+}
+
+#downloadBtn {
+    width: 130px;
+}
+
+#fullResetBtn {
+    width: 120px;
+}
+
+.tx-list-container {
+    height: calc(100% - 60px);
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.tx-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.month-card {
+    background: var(--glass);
+    /* --- UPDATE: Use variable --- */
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.month-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.month-card h3 {
+    margin: 0 0 4px;
+    color: var(--accent);
+}
+
+.month-card p {
+    margin: 0;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+
+.expense-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background: var(--glass);
+    /* --- UPDATE: Use variable --- */
+    border: 1px solid var(--glass-border);
+}
+
+.expense-left {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.cat-badge {
+    min-width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.meta {
+    font-size: 13px;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+}
+
+.amount {
+    font-weight: 700;
+}
+
+.controls {
+    display: flex;
+    gap: 8px;
+}
+
+.search-input {
+    padding: 8px;
+    border-radius: 10px;
+    /* --- UPDATE: Use variables --- */
+    border: 1px solid var(--glass-border);
+    background: var(--input-bg);
+    color: inherit;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Reset Modal/Banner */
+.reset-modal,
+.tx-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(7, 16, 36, 0.9);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.reset-box,
+.tx-modal-content {
+    background: var(--card);
+    padding: 24px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 450px;
+    width: 100%;
+}
+
+.reset-box .input-group .input {
+    /* --- UPDATE: Use variables --- */
+    background: var(--input-bg);
+    border: 1px solid var(--glass-border);
+}
+
+
+.tx-modal-content {
+    max-width: 1400px;
+    width: 100%;
+    text-align: left;
+    position: relative;
+}
+
+.tx-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.tx-modal-header h2 {
+    margin: 0;
+}
+
+.close-modal-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.tx-modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+footer {
+    grid-column: 1/-1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    flex-shrink: 0;
+}
+
+/* --- Smart Insights --- */
+#smart-insights h3 {
+    margin-top: 0;
+}
+
+#smart-insights p {
+    font-size: 14px;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+    margin: 8px 0;
+    padding-left: 12px;
+    border-left: 2px solid var(--accent);
+}
+
+#smart-insights p.positive {
+    border-color: var(--accent);
+}
+
+#smart-insights p.negative {
+    border-color: var(--danger);
+}
+
+#smart-insights p.info {
+    border-color: #60a5fa;
+}
+
+
+/* --- Calculator Modal --- */
+#calculator-modal {
+    align-items: flex-start;
+}
+
+#calculator {
+    width: 100%;
+    max-width: 320px;
+    margin-top: 10vh;
+    background: var(--card);
+    /* --- UPDATE: Use variable --- */
+    border: 1px solid var(--glass-border);
+    padding: 16px;
+}
+
+#calc-display {
+    width: 100%;
+    padding: 16px;
+    font-size: 32px;
+    text-align: right;
+    margin-bottom: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* --- UPDATE: Use variable --- */
+    background: var(--input-bg);
+    border-radius: 8px;
+    padding-right: 16px;
+}
+
+.calc-keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.calc-key {
+    padding: 18px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 10px;
+    background: var(--glass);
+    border: 1px solid transparent;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.calcbtn {
+    position: relative;
+    top: -18px;
+    left: 25px;
+    font-size: 12px;
+    height: 0px;
+}
+
+.calc-key:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.calc-key-op {
+    background: rgba(110, 231, 183, 0.2);
+    color: var(--accent);
+}
+
+.calc-key-equals {
+    grid-column: 4;
+    grid-row: 3 / 5;
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.calc-key-zero {
+    grid-column: 1 / 3;
+}
+
+#voiceBtn.active {
+    background: var(--danger);
+    color: #fff;
+}
+
+/* Target the entire scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e1e1e;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #6ee7b7;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #388e3c;
+}
+
+#cashFlowTrendChart {
+    height: 300px;
+}
+
+.saving-month-group {
+    margin-bottom: 20px;
+}
+
+.saving-month-header {
+    color: var(--accent);
+    border-bottom: 1px solid var(--glass);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.saving-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--glass);
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.saving-item .amount {
+    color: #a78bfa;
+}
+
+/* --- NEW: Form Toggle Buttons --- */
+.form-toggle-btn {
+    flex: 1;
+    border-radius: 8px 8px 0 0 !important;
+    border-bottom: none !important;
+    background: transparent;
+    border: 1px solid var(--glass);
+    border-bottom-color: var(--glass) !important;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+    padding: 8px;
+    font-size: 13px;
+}
+
+.form-toggle-btn.active {
+    background: var(--glass);
+    color: var(--accent);
+    border-bottom-color: var(--card) !important;
+    /* Hides border */
+    position: relative;
+    top: 1px;
+}
+
+footer {
+    grid-column: 1/-1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    flex-shrink: 0;
+    padding: 12px;
+    height: 50px;
+    text-align: center;
+    justify-content: center;
+    /* --- UPDATE: Use variable --- */
+    color: var(--text-muted);
+    font-size: 14px;
+    background: var(--glass);
+    border-radius: 14px;
+    /* --- UPDATE: Use variable --- */
+    border-top: 1px solid var(--glass-border);
+
+}
+
+/* --- NEW: Reframed Responsive Design --- */
+
+/* Breakpoint 1: Large tablets / Small laptops (e.g., < 1100px)
+  - Stack the main left/right columns.
+  - Change body from fixed-center app to scrolling page.
+*/
+@media (max-width: 1100px) {
+    body {
+        padding: 0;
+        overflow: auto;
+        /* Allow scrolling */
+        display: block;
+        /* Revert from centering flex container */
+        height: auto;
+        /* Allow body to grow with content */
+        min-height: 100vh;
+        /* Ensure it still fills the viewport */
+    }
+
+    .app-wrap {
+        height: auto;
+        max-height: none;
+        max-width: 100%;
+        /* Allow it to fill the width */
+        border-radius: 0;
+    }
+
+    /* Make header/footer full-width */
+    .app-wrap>header.card,
+    .app-wrap>footer.card {
+        border-radius: 0;
+    }
+
+    main {
+        overflow: visible;
+        /* Remove internal scrolling */
+    }
+
+    /* Stack the main layout columns */
+    .app-grid {
+        grid-template-columns: 1fr;
+        /* Stack left and right columns */
+        height: auto;
+    }
+
+    /* Remove internal scrolling from columns */
+    .left-column,
+    .right-column {
+        overflow-y: visible;
+        padding-right: 0;
+    }
+}
+
+/* Breakpoint 2: Tablets (e.g., < 768px)
+  - Stack the charts in the right column.
+  - Make header elements wrap.
+  - Adjust modal for smaller screens.
+*/
+@media (max-width: 768px) {
+    header {
+        flex-wrap: wrap;
+        /* Allow brand and nav to wrap */
+        gap: 10px;
+    }
+
+    .header-right {
+        margin-left: 0;
+        /* Remove auto margin */
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    /* Stack the charts */
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Adjust transaction modal */
+    .tx-modal-content {
+        width: 95%;
+        max-width: 95%;
+        margin-top: 5vh;
+        /* Give some space from the top */
+    }
+
+    .tx-modal-body {
+        max-height: 60vh;
+        /* Limit modal height */
+    }
+
+    /* Stack expense items in modal */
+    .expense-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .expense-item .controls {
+        margin-left: auto;
+        /* Push buttons to the right */
+    }
+}
+
+/* Breakpoint 3: Mobile (e.g., < 480px)
+  - Stack form-row elements.
+  - Stack summary stat boxes.
+  - Tweak header and login/reset boxes for small screens.
+*/
+@media (max-width: 480px) {
+
+    /* Make login/reset boxes wider */
+    .login-box,
+    .reset-box {
+        padding: 2rem 1.5rem;
+        max-width: 95%;
+    }
+
+    /* Stack form inputs */
+    .form-row {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .form-row>div {
+        width: 100%;
+        /* Make inputs full-width */
+    }
+
+    /* Stack summary boxes */
+    .summary {
+        flex-direction: column;
+    }
+
+    /* Tweak header for very small screens */
+    .brand {
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        /* Center brand if it wraps */
+    }
+
+    .brand h1 {
+        font-size: 16px;
+    }
+
+    .logo {
+        width: 40px;
+        height: 40px;
+    }
+
+    .header-right {
+        gap: 0.5rem;
+    }
+
+    .top-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+}
+
+
+/* --- NEW: Light Mode Theme --- */
+body.light-mode {
+    --bg: #f8fafc; /* Light gray background */
+    --card: #ffffff; /* White cards */
+    --text-primary: #0f172a; /* Dark blue text */
+    --text-muted: #64748b; /* Lighter gray text */
+    --glass: rgba(0, 0, 0, 0.03);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --input-bg: rgba(0, 0, 0, 0.05);
+    --card-bg-translucent: rgba(255, 255, 255, 0.6);
+}
+
+/* Light mode-specific tweaks */
+body.light-mode .card {
+    box-shadow: 0 6px 20px rgba(100, 116, 139, 0.1);
+    border-color: var(--glass-border);
+}
+
+body.light-mode .btn.ghost {
+    border-color: var(--glass-border);
+}
+
+body.light-mode .stat {
+    background: var(--glass);
+}
+
+body.light-mode #downloadPeriod,
+body.light-mode #chartPeriod {
+    color: var(--text-primary);
+    background-color: var(--input-bg);
+}
+
+body.light-mode input[type=date],
+body.light-mode input[type=month] {
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+}
+body.light-mode select {
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+}
+
+body.light-mode .month-card {
+    border-color: var(--glass-border);
+}
+
+body.light-mode .month-card:hover {
+    background: var(--glass);
+}
+
+body.light-mode .login-box {
+    box-shadow: 0 10px 40px rgba(100, 116, 139, 0.2);
+}
+body.light-mode .input {
+    color: var(--text-primary);
+}
+
+body.light-mode .reset-modal, 
+body.light-mode .tx-modal {
+    background: rgba(248, 250, 252, 0.9);
+}
+
+body.light-mode .reset-box, 
+body.light-mode .tx-modal-content {
+    box-shadow: 0 10px 40px rgba(100, 116, 139, 0.2);
+}
+
+body.light-mode #calculator {
+    box-shadow: 0 10px 40px rgba(100, 116, 139, 0.2);
+}
+
+body.light-mode .calc-key {
+    color: var(--text-primary);
+}
+body.light-mode .calc-key:hover {
+    background: var(--glass);
+}
+body.light-mode .calc-key-op {
+    background: rgba(110, 231, 183, 0.2);
+    color: var(--accent);
+}
+body.light-mode .calc-key-equals {
+    color: #042028;
+}
+
+body.light-mode ::-webkit-scrollbar-track {
+    background: #e2e8f0;
+}
+
+#themeToggleBtn{
+    display:none;
+}

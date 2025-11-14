@@ -67,6 +67,17 @@ const payableSchema = new mongoose.Schema({
 });
 // --- END NEW ---
 
+// --- NEW: Schema for Contact Form Submissions ---
+const contactSchema = new mongoose.Schema({
+    user: String, // The user who is logged in
+    name: String,
+    phone: String,
+    email: String,
+    query: String,
+    created: { type: Date, default: Date.now },
+});
+// --- END NEW ---
+
 const incomeSchema = new mongoose.Schema({
   user: String,
   monthKey: String,
@@ -84,6 +95,7 @@ const Expense = mongoose.model('Expense', expenseSchema);
 const Saving = mongoose.model('Saving', savingSchema);
 const PendingReturn = mongoose.model('PendingReturn', pendingReturnSchema); // --- UPDATE ---
 const Payable = mongoose.model('Payable', payableSchema); // --- NEW ---
+const Contact = mongoose.model('Contact', contactSchema); // --- NEW ---
 const Income = mongoose.model('Income', incomeSchema);
 const Meta = mongoose.model('Meta', metaSchema);
 
@@ -387,6 +399,30 @@ app.delete('/api/payables/user/:user', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+// ===============================
+// ✉️ Contact Form Route (NEW)
+// ===============================
+app.post('/api/contact', async (req, res) => {
+    try {
+        const { user, name, phone, email, query } = req.body;
+        if (!user || !name || !phone) {
+            return res.status(400).json({ error: 'User, Name, and Phone are required.' });
+        }
+        const newSubmission = new Contact({
+            user,
+            name,
+            phone,
+            email,
+            query,
+        });
+        await newSubmission.save();
+        res.json({ message: 'Contact submission received successfully!' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+// --- END NEW ---
 
 
 // ===============================

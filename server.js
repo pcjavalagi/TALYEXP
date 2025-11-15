@@ -46,6 +46,19 @@ const savingSchema = new mongoose.Schema({
   created: { type: Date, default: Date.now },
 });
 
+// server.js: Inside the "📦 Schemas & Models" section
+
+// --- NEW: Schema for Keep Notes ---
+const noteSchema = new mongoose.Schema({
+    user: String,
+    title: String,
+    content: String,
+    created: { type: Date, default: Date.now },
+});
+
+const Note = mongoose.model('Note', noteSchema); // 👈 Add this line to define the model
+// ...
+// Ensure Note is included in the list of models when defining them
 // --- UPDATE: New Schema for Pending Returns ---
 const pendingReturnSchema = new mongoose.Schema({
     user: String,
@@ -333,6 +346,60 @@ app.delete('/api/returns/user/:user', async (req, res) => {
     try {
         await PendingReturn.deleteMany({ user: req.params.user });
         res.json({ message: 'All returns deleted for user' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// server.js: Add these after existing API routes (e.g., after /api/payables routes)
+
+// ===============================
+// 📝 Notes Routes
+// ===============================
+
+// POST /api/notes (Create a new note)
+app.post('/api/notes', async (req, res) => {
+    try {
+        const { user, title, content } = req.body;
+        if (!user || !title || !content) {
+            return res.status(400).json({ error: 'Missing required fields for note.' });
+        }
+        const newNote = new Note({ user, title, content });
+        await newNote.save();
+        res.status(201).json(newNote);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/notes/user/:user (Fetch all notes for a user)
+app.get('/api/notes/user/:user', async (req, res) => {
+    try {
+        const notes = await Note.find({ user: req.params.user }).sort({ created: -1 });
+        res.json(notes);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE /api/notes/:id (Delete a note by ID)
+app.delete('/api/notes/:id', async (req, res) => {
+    try {
+        const result = await Note.deleteOne({ _id: req.params.id });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: 'Note not found' });
+        }
+        res.json({ message: 'Note deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE /api/notes/user/:user (Clear all notes for a user on full reset)
+app.delete('/api/notes/user/:user', async (req, res) => {
+    try {
+        await Note.deleteMany({ user: req.params.user });
+        res.json({ message: 'All notes cleared successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

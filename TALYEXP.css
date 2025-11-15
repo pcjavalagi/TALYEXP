@@ -223,15 +223,6 @@ main {
     overflow: hidden;
 }
 
-#home-view,
-#transactions-view,
-#savings-view,
-#returns-view,
-#payables-view,
-#contact-view { /* --- NEW: Added contact-view --- */
-    height: 100%;
-}
-
 .brand {
     display: flex;
     align-items: center;
@@ -501,7 +492,8 @@ select {
 #savings-view,
 #returns-view,
 #payables-view,
-#contact-view { /* --- NEW: Added contact-view --- */
+#contact-view,
+#notes-view { /* --- NEW: Added notes-view --- */
     display: none;
     overflow-y: auto; /* --- NEW: Allow scrolling on contact page --- */
 }
@@ -1149,4 +1141,86 @@ body.light-mode ::-webkit-scrollbar-track {
 
 #themeToggleBtn{
     display:none;
+}
+
+/* TALYEXP.css: Add these styles at the end of the file */
+
+/* --- NEW: Styles for Keep Notes Functionality (Q5) --- */
+
+/* Textarea style: Reuses existing input styles but enforces a minimum height */
+#note-content {
+    min-height: 150px; 
+    resize: vertical;
+}
+
+/* Base style for the notes view (reusing transaction/other views) */
+#notes-view {
+    display: none;
+    padding: 30px;
+}
+
+/* --- UPDATE THIS RULE --- */
+#home-view,
+#transactions-view,
+#savings-view,
+#returns-view,
+#payables-view,
+#contact-view,
+#notes-view { /* --- NEW: Added notes-view --- */
+    height: 100%;
+}
+
+/* Container for the notes grid */
+#notes-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+/* Style for the Note View Modal (Popup) (Q5) */
+#note-view-modal {
+    position: fixed;
+    z-index: 20;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+}
+
+#note-view-modal .tx-modal-content {
+    background-color: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh; /* Limits the overall modal height */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Scroll functionality for the description in the popup (Q5) */
+#note-modal-body {
+    flex-grow: 1;
+    overflow-y: auto; /* Adds scroll when description is too long */
+    white-space: pre-wrap; /* Preserves line breaks and wraps text */
+    padding-right: 10px; /* Space for scrollbar */
+}
+
+/* Style for the close button */
+#note-view-modal .close-btn {
+    font-size: 24px;
+    color: var(--text-muted);
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+#note-view-modal .close-btn:hover,
+#note-view-modal .close-btn:focus {
+    color: var(--danger);
+    text-decoration: none;
 }

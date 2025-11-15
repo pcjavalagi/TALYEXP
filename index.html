@@ -179,6 +179,8 @@
                             </div>
                             <div style="display:flex;gap:10px;margin-top:16px;align-items:center;">
                                 <button id="addSavingBtn" class="btn">Add Saving</button>
+                                <button id="updateSavingBtn" class="btn ghost" style="display:none">Update
+                                    Saving</button>
                             </div>
                         </div>
 
@@ -394,12 +396,22 @@
             </div>
 
         </main>
-        <footer class="card" style="margin-top: 12px; padding: 12px; text-align: center;">
+        <footer class="card"
+            style="margin-top: 12px; padding: 12px; text-align: center; position: relative; min-height: 60px; display: flex; align-items: center; justify-content: center;">
             <p style="margin:0; font-size: 14px; color: var(--muted);">
                 Developed by <strong>PCJ</strong>
                 <br> &copy; 2025 TALYEXP. All Rights Reserved.
-
             </p>
+            <div id="about-me-btn-container">
+                <button id="aboutMeBtn" class="btn small" title="About Me">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        viewBox="0 0 256 256">
+                        <path
+                            d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216ZM120,104a8,8,0,0,1,16,0v64a8,8,0,0,1-16,0Zm8-40a12,12,0,1,1-12,12A12,12,0,0,1,128,64Z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
         </footer>
     </div>
 
@@ -471,6 +483,47 @@
         </div>
     </div>
 
+    <div id="about-me-modal" class="tx-modal">
+        <div class="tx-modal-content" style="max-width: 500px; text-align: left;">
+            <div class="tx-modal-header">
+                <h2 id="about-me-modal-title">About Me</h2>
+                <button id="close-about-me-modal-btn" class="close-modal-btn">&times;</button>
+            </div>
+            <div id="about-me-modal-body" class="tx-modal-body" style="max-height: 450px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="image_self.png" alt="PJ"
+                        style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent);">
+                </div>
+                <h3 style="margin-top: 0;">Pranav Javalagi</h3><br>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: -10px; margin-bottom: 20px;">
+                    <a href="mailto:pcjavalagi2002@gmail.com" style="color: var(--accent);">pcjavalagi2002@gmail.com</a>
+                </p>
+                <p style="font-size: 14px; line-height: 1.6;">
+                    Feel free to reach out to me for any queries, suggestions, or collaboration opportunities. I am
+                    always
+                    excited to connect with like-minded individuals and professionals in the tech community.
+                    Check out my protfolio: <strong
+                        style="color: var(--accent); background: rgba(110, 231, 183, 0.1); padding: 2px 4px; border-radius: 4px;">
+                        pranavjportfolio.netlify.app</strong>
+                </p>
+                <h4>Who am I?</h4>
+                <p style="font-size: 14px; line-height: 1.6;">
+                    I am a dedicated working professional currently serving as a Systems Engineer at TCS. My passion
+                    lies
+                    in the ever-evolving world of technology, and I am particularly eager to deepen my expertise in
+                    Artificial Intelligence and Machine Learning (AI/ML).
+                </p>
+                <p style="font-size: 14px; line-height: 1.6;">
+                    I am a proactive learner, always seeking new challenges to grow my skills. I am currently <strong
+                        style="color: var(--accent); background: rgba(110, 231, 183, 0.1); padding: 2px 4px; border-radius: 4px;">open
+                        to work</strong> and excited about opportunities where I can contribute to innovative projects
+                    and make a meaningful impact.
+                </p>
+
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- App State & Constants ---
         const SESSION_KEY = 'talyexp_v1:session';
@@ -492,6 +545,7 @@
 
         let meta = { startTs: Date.now() };
         let editingId = null;
+        let editingSavingId = null; // 👈 ADDED for saving update
         let monthlyIncomes = {};
         let chartInstances = {};
         let authMode = 'login'; // --- UPDATE: 'login', 'register', 'reset' ---
@@ -551,6 +605,7 @@
         const savingAmountEl = document.getElementById('saving-amount');
         const savingMonthEl = document.getElementById('saving-month');
         const addSavingBtn = document.getElementById('addSavingBtn');
+        const updateSavingBtn = document.getElementById('updateSavingBtn'); // 👈 ADDED
         const savingsGrid = document.getElementById('savingsGrid'); // --- UPDATE ---
 
         // --- NEW: Pending Return DOM Elements ---
@@ -620,6 +675,11 @@
         const passwordModalInput = document.getElementById('password-modal-input');
         const passwordModalConfirm = document.getElementById('password-modal-confirm');
         const passwordModalCancel = document.getElementById('password-modal-cancel');
+
+        // --- NEW: About Me Modal Elements ---
+        const aboutMeBtn = document.getElementById('aboutMeBtn');
+        const aboutMeModal = document.getElementById('about-me-modal');
+        const closeAboutMeModalBtn = document.getElementById('close-about-me-modal-btn');
 
 
         // --- Utility Functions ---
@@ -1258,6 +1318,7 @@
                         <div style="display:flex; align-items:center; gap:12px;">
                             <div class="amount" style="color: #a78bfa;">${safeAmount}</div>
                             <div class="controls">
+                                <button class="btn ghost small" onclick="editSaving('${e._id}')">Edit</button>
                                 <button class="btn ghost small" onclick="deleteSaving('${e._id}')">Delete</button>
                             </div>
                         </div>`;
@@ -1277,6 +1338,16 @@
             updateBtn.style.display = 'none';
             addBtn.style.display = 'inline-block';
             renderIncomeForSelectedMonth();
+        }
+
+        // --- NEW: Reset Saving Form ---
+        function resetSavingForm() {
+            savingTitleEl.value = '';
+            savingAmountEl.value = '';
+            savingMonthEl.value = new Date().toISOString().slice(0, 7);
+            editingSavingId = null;
+            updateSavingBtn.style.display = 'none';
+            addSavingBtn.style.display = 'inline-block';
         }
 
         // --- NEW: Reset Return Form ---
@@ -1315,6 +1386,23 @@
             updateBtn.style.display = 'inline-block';
             titleEl.focus();
             renderIncomeForSelectedMonth();
+        };
+
+        // --- NEW: editSaving ---
+        window.editSaving = (id) => {
+            txModal.style.display = 'none'; // Close the modal
+            const item = savings.find(s => s._id === id);
+            if (!item) return;
+            showView('home'); // Go to the home view where the form is
+
+            savingTitleEl.value = item.title;
+            savingAmountEl.value = item.amount;
+            savingMonthEl.value = item.monthKey;
+
+            editingSavingId = id;
+            addSavingBtn.style.display = 'none';
+            updateSavingBtn.style.display = 'inline-block';
+            savingTitleEl.focus();
         };
 
         // --- NEW: editReturn ---
@@ -1380,6 +1468,7 @@
                 const res = await fetch(`/api/savings/${id}`, { method: 'DELETE' });
                 if (!res.ok) throw new Error('Failed to delete saving from server.');
                 await loadDataAndRender(); // Reloads all data
+                resetSavingForm(); // 👈 ADDED in case user was editing this
                 const monthLabel = txModalTitle.textContent.split(' - ')[0];
                 const monthKey = Object.keys(groupedSavings).find(key => groupedSavings[key].label === monthLabel);
                 if (monthKey && groupedSavings[key].items.length > 0) {
@@ -2192,6 +2281,20 @@
                     noteViewModal.style.display = 'none';
                 }
             });
+
+            // --- NEW: About Me Modal Listeners ---
+            aboutMeBtn.addEventListener('click', () => {
+                aboutMeModal.style.display = 'flex';
+            });
+            closeAboutMeModalBtn.addEventListener('click', () => {
+                aboutMeModal.style.display = 'none';
+            });
+            aboutMeModal.addEventListener('click', (e) => {
+                if (e.target === aboutMeModal) {
+                    aboutMeModal.style.display = 'none';
+                }
+            });
+
             // --- NEW: Form Toggle Logic ---
             toggleReturnBtn.addEventListener('click', () => {
                 returnFormContainer.style.display = 'block';
@@ -2284,8 +2387,7 @@
                     });
                     if (!res.ok) throw new Error('Failed to add saving');
                     await loadDataAndRender();
-                    savingTitleEl.value = '';
-                    savingAmountEl.value = '';
+                    resetSavingForm();
                 } catch (err) { alert(err.message); }
             });
 
@@ -2334,6 +2436,23 @@
                     if (!res.ok) throw new Error('Failed to update expense');
                     await loadDataAndRender();
                     resetForm();
+                } catch (err) { alert(err.message); }
+            });
+
+            // --- NEW: Update Saving ---
+            updateSavingBtn.addEventListener('click', async () => {
+                const t = savingTitleEl.value.trim(), a = parseFloat(savingAmountEl.value || 0), m = savingMonthEl.value;
+                if (!t || !a || !m || !editingSavingId) { alert('Please fill all fields.'); return; }
+                try {
+                    const res = await fetch(`/api/savings/${editingSavingId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title: t, amount: a, monthKey: m })
+                    });
+                    if (!res.ok) throw new Error('Failed to update saving');
+                    await loadDataAndRender();
+                    resetSavingForm();
+                    if (savingsView.style.display === 'block') renderSavings(); // Refresh view if active
                 } catch (err) { alert(err.message); }
             });
 

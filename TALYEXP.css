@@ -1224,3 +1224,115 @@ body.light-mode ::-webkit-scrollbar-track {
     color: var(--danger);
     text-decoration: none;
 }
+
+/* --- Styles for About Me Button & Modal --- */
+
+/* Positions the icon button in the footer */
+#about-me-btn-container {
+    position: absolute;
+    right: 18px; /* Matches footer padding */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Styles the 'About Me' button to be a round icon */
+#aboutMeBtn {
+    border-radius: 50%; 
+    padding: 8px;       
+    width: 34px;        
+    height: 34px;       
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #6ee7b799; /* Fallback */
+    background: var(--glass);
+    color: var(--text-muted);
+    border: 1px solid var(--glass-border);
+    transition: all 0.2s ease;
+
+    /* --- ADDED FOR CONSTANT GLOW --- */
+    /* This adds a constant, subtle glow using your accent color */
+    box-shadow: 0 0 10px rgba(110, 231, 183, 0.6);
+}
+
+#aboutMeBtn:hover {
+    background: var(--accent);
+    color: var(--bg); /* High contrast */
+    border-color: var(--accent);
+    transform: scale(1.1);
+
+    /* --- UPDATED FOR A STRONGER HOVER GLOW --- */
+    /* This makes the glow brighter on hover */
+    box-shadow: 0 0 15px #6ee7b7, /* Brighter outer glow */
+                0 0 5px rgba(110, 231, 183, 0.7); /* Brighter inner glow */
+}
+
+#aboutMeBtn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Styles the placeholder 'image' box */
+#about-me-modal-body div:first-child {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--glass);
+    border: 2px dashed var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Use !important to override inline margin-bottom */
+    margin: 0 auto 20px auto !important;
+    text-align: center;
+}
+
+/* Styles the text inside the placeholder box */
+#about-me-modal-body div:first-child div {
+    /* Use !important to override inline font-size */
+    font-size: 12px !important; 
+    color: var(--text-muted);
+}
+
+/* Styles the headings inside the modal body */
+#about-me-modal-body h3 {
+    color: var(--text-primary);
+    margin-top: 0;
+    margin-bottom: 4px;
+}
+
+#about-me-modal-body h4 {
+    color: var(--accent);
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 4px;
+    margin-top: 24px;
+    margin-bottom: 10px;
+}
+
+/* Targets the email link specifically */
+#about-me-modal-body p a[href^="mailto:"] {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+#about-me-modal-body p a[href^="mailto:"]:hover {
+    text-decoration: underline;
+}
+
+/* General paragraph styling in the modal */
+#about-me-modal-body p {
+    /* Overrides inline styles for consistency */
+    color: var(--text-muted) !important;
+    line-height: 1.6 !important;
+    font-size: 14px !important;
+}
+
+/* Ensures the 'open to work' badge uses theme variables */
+#about-me-modal-body strong {
+    background: rgba(110, 231, 183, 0.1);
+    color: var(--accent);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-weight: 600;
+}

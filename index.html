@@ -88,6 +88,7 @@
                         <button id="savingsBtn" class="btn small ghost">Savings</button>
                         <button id="returnsBtn" class="btn small ghost">Returns</button>
                         <button id="payablesBtn" class="btn small ghost">Payables</button>
+                        <button id="notesBtn" class="btn small ghost">Notes</button>
                         <button id="contactBtn" class="btn small ghost">Contact Me</button> <button id="calculatorBtn"
                             class="btn ghost small" title="Calculator" style="padding: 6px 8px;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -324,6 +325,41 @@
                 </div>
             </div>
 
+            <div id="notes-view" class="card" style="display: none;">
+                <div class="top-bar"
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin:0;">Keep Notes</h2>
+                    <button id="toggleNoteFormBtn" class="btn small ghost">Hide Form</button>
+                </div>
+
+                <div id="note-creation-card" class="note-input-container card" style="margin-bottom: 20px;">
+                    <label for="note-title">Note Title</label>
+                    <input id="note-title" class="input" type="text" placeholder="e.g., Ideas for next month" />
+
+                    <div style="margin-top: 14px;">
+                        <label for="note-content">Note Content</label>
+                        <textarea id="note-content" class="input"
+                            placeholder="Type or speak your thoughts here..."></textarea>
+                    </div>
+
+                    <div style="display:flex;gap:10px;margin-top:16px;align-items:center;">
+                        <button id="noteUpdateBtn" class="btn">Update/Save Note</button>
+                        <button id="noteResetBtn" class="btn ghost">Reset</button>
+                        <button id="noteVoiceBtn" class="btn ghost" title="Add with Voice" style="padding: 8px 12px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                viewBox="0 0 256 256">
+                                <path
+                                    d="M128,176a48.05,48.05,0,0,0,48-48V64a48,48,0,0,0-96,0v64A48.05,48.05,0,0,0,128,176ZM96,64a32,32,0,0,1,64,0v64a32,32,0,0,1-64,0Zm40,151.6V240a8,8,0,0,1-16,0V215.6A80.05,80.05,0,0,1,48,128a8,8,0,0,1,16,0,64,64,0,0,0,128,0,8,8,0,0,1,16,0A80.05,80.05,0,0,1,136,215.6Z">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <h3>Your Saved Notes</h3>
+                <div id="notes-container" class="tx-grid">
+                </div>
+            </div>
             <div id="contact-view" class="card" style="display: none;">
                 <div class="top-bar">
                     <h2 style="margin:0;">Contact Me / Suggestions</h2>
@@ -423,6 +459,18 @@
         </div>
     </div>
 
+    <div id="note-view-modal" class="tx-modal">
+        <div class="tx-modal-content">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass); padding-bottom: 10px; margin-bottom: 10px;">
+                <h3 id="note-modal-title" style="margin: 0;">Note Title</h3>
+                <span class="close-btn" style="cursor: pointer;">&times;</span>
+            </div>
+            <div id="note-modal-body" class="tx-modal-body" style="max-height: 400px; overflow-y: auto;">
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- App State & Constants ---
         const SESSION_KEY = 'talyexp_v1:session';
@@ -447,6 +495,28 @@
         let monthlyIncomes = {};
         let chartInstances = {};
         let authMode = 'login'; // --- UPDATE: 'login', 'register', 'reset' ---
+
+        // index.html: Inside <script> tag, near the other global declarations
+
+        let notes = []; // 👈 ADD THIS for storing fetched notes
+
+        // ...existing DOM elements...
+
+        // --- NEW: Keep Notes DOM Elements ---
+        const notesBtn = document.getElementById('notesBtn'); // 👈 ADD THIS LINE
+        const notesView = document.getElementById('notes-view'); // 👈 ADD THIS LINE
+        const noteTitleEl = document.getElementById('note-title');
+        const noteContentEl = document.getElementById('note-content');
+        const noteUpdateBtn = document.getElementById('noteUpdateBtn');
+        const noteResetBtn = document.getElementById('noteResetBtn');
+        const noteVoiceBtn = document.getElementById('noteVoiceBtn');
+        const notesContainer = document.getElementById('notes-container');
+        const noteViewModal = document.getElementById('note-view-modal');
+        const noteModalTitle = document.getElementById('note-modal-title');
+        const noteModalBody = document.getElementById('note-modal-body');
+
+        let editingNoteId = null; // for future update feature
+        // ...
 
         // --- DOM Elements ---
         const splashScreen = document.getElementById('splash-screen');
@@ -684,24 +754,145 @@
                 forgotPassLink.style.display = 'none';
             }
         }
+        // index.html: Inside <script> tag, add these functions (e.g., near other CRUD functions)
 
+        // Helper function to reset the form
+        function resetNoteForm() {
+            noteTitleEl.value = '';
+            noteContentEl.value = '';
+            editingNoteId = null;
+            noteUpdateBtn.textContent = 'Update/Save Note';
+            noteUpdateBtn.classList.remove('ghost');
+        }
+
+        // Function to handle saving/updating a note (4. update button creates cards)
+        async function handleUpdateNote() {
+            const t = noteTitleEl.value.trim();
+            const c = noteContentEl.value.trim();
+
+            if (!t || !c) {
+                alert('Please enter a title and content for your note.');
+                return;
+            }
+
+            try {
+                const url = editingNoteId ? `/api/notes/${editingNoteId}` : '/api/notes';
+                const method = editingNoteId ? 'PUT' : 'POST'; // Assuming you'd implement the PUT route for updates later, POST for new notes. Using POST/Create for simplicity here.
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user: sessionStorage.getItem(SESSION_KEY),
+                        title: t,
+                        content: c,
+                    })
+                });
+
+                if (!res.ok) throw new Error(`Failed to ${editingNoteId ? 'update' : 'add'} note`);
+
+                await fetchNotes(); // Re-fetch all notes
+                renderNotes();
+                resetNoteForm();
+
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // Function to delete a note
+        async function handleDeleteNote(id) {
+            if (!confirm('Are you sure you want to delete this note?')) return;
+            try {
+                const res = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Failed to delete note');
+
+                await fetchNotes(); // Re-fetch all notes
+                renderNotes();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // Function to show the full note in a modal (4. view button/popup)
+        function showNoteModal(id) {
+            const note = notes.find(n => n._id === id);
+            if (note) {
+                noteModalTitle.textContent = escapeHtml(note.title);
+                // Use <br> to respect line breaks from the textarea
+                noteModalBody.innerHTML = escapeHtml(note.content).replace(/\n/g, '<br>');
+                noteViewModal.style.display = 'flex';
+            }
+        }
+
+        // Function to render the notes as cards (4. cards should create)
+        function renderNotes() {
+            notesContainer.innerHTML = '';
+            if (notes.length === 0) {
+                notesContainer.innerHTML = `<p class="subtitle" style="text-align:center; padding: 20px; grid-column: 1 / -1;">No notes saved yet.</p>`;
+                return;
+            }
+
+            // --- NEW: Color array for note cards ---
+            const cardColors = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5'];
+
+            notes.forEach((note, i) => { // --- NEW: Added index 'i' ---
+                // Do not show the whole information in the card
+                const snippet = note.content.length > 80 ? `${note.content.substring(0, 80)}...` : note.content;
+
+                // --- NEW: Assign a color class based on index ---
+                const colorClass = cardColors[i % cardColors.length];
+
+                const noteCard = document.createElement('div');
+                // --- NEW: Added colorClass to the class list ---
+                noteCard.className = 'month-card note-card ' + colorClass;
+                noteCard.innerHTML = `
+            <h3 style="margin-top:0; color: var(--accent);">${escapeHtml(note.title)}</h3>
+            <p class="subtitle" style="font-size: 14px; margin: 8px 0; min-height: 40px;">${escapeHtml(snippet)}</p>
+            <div style="display: flex; justify-content: space-between; gap: 8px; margin-top: 10px;">
+                <button class="btn small" onclick="showNoteModal('${note._id}')" title="View Note">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M247.31,124.76c-.35-.79-8.83-19.5-42.84-43.2C172.56,51.84,137.64,32,128,32s-44.56,19.84-76.47,48.47C17.5,105.26,8.23,123.97,8.69,124.76a8,8,0,0,0,0,6.56c.46.79,9.73,19.5,43.74,43.2C83.44,204.16,118.36,224,128,224s44.56-19.84,76.47-48.47C247.31,124.76,247.31,124.76,247.31,124.76ZM128,208c-30.84,0-61.78-14.71-88.75-38.81C28.29,150.7,20.48,137.91,20.06,128c.42-9.92,8.23-22.71,19.19-38.19C66.22,62.71,97.16,48,128,48s61.78,14.71,88.75,38.81C227.71,103.3,235.52,116.09,235.94,128c-.42,9.92-8.23,22.71-19.19,38.19C194.22,193.29,163.28,208,128,208ZM128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"/></svg>
+                </button>
+                <button class="btn small danger" onclick="handleDeleteNote('${note._id}')" title="Delete Note">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96ZM192,208H64V64H192Zm-96-24V96a8,8,0,0,1,16,0v88a8,8,0,0,1-16,0Zm48,0V96a8,8,0,0,1,16,0v88a8,8,0,0,1-16,0Z"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+                notesContainer.appendChild(noteCard);
+            });
+        }
+        // Function to fetch notes (must be added to loadDataAndRender)
+        async function fetchNotes() {
+            try {
+                const res = await fetch(`/api/notes/user/${sessionStorage.getItem(SESSION_KEY)}`);
+                if (!res.ok) throw new Error('Failed to fetch notes');
+                notes = await res.json();
+            } catch (err) {
+                console.error('Error fetching notes:', err.message);
+            }
+        }
         // --- View Management ---
         function showView(viewId) {
             homeView.style.display = 'none';
             transactionsView.style.display = 'none';
             savingsView.style.display = 'none';
+            notesView.style.display = 'none'; // --- NEW: Hide notes view ---
             returnsView.style.display = 'none'; // --- NEW ---
             payablesView.style.display = 'none'; // 👈 ADDED
             contactView.style.display = 'none'; // --- NEW ---
+
             homeBtn.classList.remove('active', 'ghost');
             txBtn.classList.remove('active', 'ghost');
             savingsBtn.classList.remove('active', 'ghost');
             returnsBtn.classList.remove('active', 'ghost'); // --- NEW ---
             payablesBtn.classList.remove('active', 'ghost'); // 👈 ADDED
             contactBtn.classList.remove('active', 'ghost'); // --- NEW ---
+            notesBtn.classList.remove('active', 'ghost'); // --- NEW: Reset notes button ---
 
-            // --- NEW: Add 'ghost' to all buttons first ---
-            [homeBtn, txBtn, savingsBtn, returnsBtn, payablesBtn, contactBtn].forEach(btn => btn.classList.add('ghost')); // 👈 UPDATED
+            // --- NEW: Add 'ghost' to all buttons first (including notesBtn) ---
+            [homeBtn, txBtn, savingsBtn, returnsBtn, payablesBtn, contactBtn, notesBtn].forEach(btn => btn.classList.add('ghost')); // 👈 UPDATED
 
             if (viewId === 'home') {
                 homeView.style.display = 'block';
@@ -730,6 +921,11 @@
                 payablesBtn.classList.add('active');
                 payablesBtn.classList.remove('ghost');
                 renderPayables();
+            } else if (viewId === 'notes') { // 👈 *** ADDED THIS ENTIRE BLOCK ***
+                notesView.style.display = 'block';
+                notesBtn.classList.add('active');
+                notesBtn.classList.remove('ghost');
+                renderNotes();
             } else if (viewId === 'contact') { // --- NEW ---
                 contactView.style.display = 'block';
                 contactBtn.classList.add('active');
@@ -742,24 +938,29 @@
             const user = sessionStorage.getItem(SESSION_KEY);
             if (!user) return;
             try {
-                // --- NEW: Fetch returns and payables data ---
-                const [expensesRes, incomeRes, metaRes, savingsRes, returnsRes, payablesRes] = await Promise.all([
+                // 1. UPDATE FETCH CALLS: Add the notes endpoint to Promise.all
+                const [expensesRes, incomeRes, metaRes, savingsRes, returnsRes, payablesRes, notesRes] = await Promise.all([ // 👈 ADD notesRes
                     fetch(`/api/expenses/${user}`),
                     fetch(`/api/income/${user}`),
                     fetch(`/api/meta/${user}`),
                     fetch(`/api/savings/${user}`),
-                    fetch(`/api/returns/${user}`), // --- NEW ---
-                    fetch(`/api/payables/${user}`) // --- NEW ---
+                    fetch(`/api/returns/${user}`),
+                    fetch(`/api/payables/${user}`),
+                    fetch(`/api/notes/user/${user}`) // 👈 ADD notes fetch
                 ]);
-                if (!expensesRes.ok || !incomeRes.ok || !metaRes.ok || !savingsRes.ok || !returnsRes.ok || !payablesRes.ok) { // --- NEW ---
+
+                // 2. UPDATE ERROR CHECK: Include the notes response
+                if (!expensesRes.ok || !incomeRes.ok || !metaRes.ok || !savingsRes.ok || !returnsRes.ok || !payablesRes.ok || !notesRes.ok) { // 👈 ADD notesRes.ok
                     throw new Error('Failed to fetch user data from server.');
                 }
+
                 expenses = await expensesRes.json();
                 const incomeData = await incomeRes.json();
                 meta = await metaRes.json();
                 savings = await savingsRes.json();
-                returns = await returnsRes.json(); // --- NEW ---
-                payables = await payablesRes.json(); // --- NEW ---
+                returns = await returnsRes.json();
+                payables = await payablesRes.json();
+                notes = await notesRes.json(); // 👈 ADD JSON PARSING for notes data
 
                 monthlyIncomes = incomeData.reduce((acc, item) => {
                     acc[item.monthKey] = item.income;
@@ -768,20 +969,21 @@
                 const capitalizedUser = user.charAt(0).toUpperCase() + user.slice(1);
                 userGreetingEl.innerHTML = `Welcome, <strong style="color: var(--accent);">${escapeHtml(capitalizedUser)}</strong>`;
 
-                // --- UPDATE: 1-Year Reset Check is removed ---
-                // if (checkYearReset()) return; 
-
                 renderHome();
 
+                // 3. UPDATE RENDERING LOGIC: Add conditional rendering for notesView
                 if (transactionsView.style.display === 'block') {
                     renderTransactions();
                 } else if (savingsView.style.display === 'block') {
                     renderSavings();
-                } else if (returnsView.style.display === 'block') { // --- NEW ---
+                } else if (returnsView.style.display === 'block') {
                     renderReturns();
-                } else if (payablesView.style.display === 'block') { // 👈 ADDED
+                } else if (payablesView.style.display === 'block') {
                     renderPayables();
+                } else if (notesView.style.display === 'block') { // 👈 ADD THIS BLOCK
+                    renderNotes();
                 }
+
             } catch (err) {
                 console.error('Error loading data:', err);
                 alert('Could not load your data. Please try again later.');
@@ -807,7 +1009,35 @@
             renderAllCharts();
             generateSmartInsights();
         }
+        // index.html: Inside <script> tag, add this function
 
+        function setupNoteVoiceInput() {
+            if (!('webkitSpeechRecognition' in window)) {
+                noteVoiceBtn.style.display = 'none';
+                console.warn('Speech recognition not supported in this browser.');
+                return;
+            }
+
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                noteContentEl.value = transcript; // 👈 text should update in text area to add notes
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                alert('Voice input error: ' + event.error);
+            };
+
+            noteVoiceBtn.addEventListener('click', () => {
+                noteContentEl.value = 'Listening...';
+                recognition.start();
+            });
+        }
         function renderIncomeForSelectedMonth() {
             const selectedDateStr = dateEl.value;
             if (!selectedDateStr) return;
@@ -1776,6 +2006,7 @@
                         fetch(`/api/savings/user/${user}`, { method: 'DELETE' }),
                         fetch(`/api/returns/user/${user}`, { method: 'DELETE' }), // --- NEW ---
                         fetch(`/api/payables/user/${user}`, { method: 'DELETE' }), // --- NEW ---
+                        fetch(`/api/notes/user/${user}`, { method: 'DELETE' }),
                         fetch('/api/meta/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user }) })
                     ]);
 
@@ -1927,13 +2158,40 @@
             returnsBtn.addEventListener('click', () => showView('returns')); // --- NEW ---
             payablesBtn.addEventListener('click', () => showView('payables')); // 👈 ADDED
             contactBtn.addEventListener('click', () => showView('contact')); // --- NEW ---
+            notesBtn.addEventListener('click', () => showView('notes')); // --- NEW: Added listener ---
             themeToggleBtn.addEventListener('click', toggleTheme); // --- NEW ---
+            noteUpdateBtn.addEventListener('click', handleUpdateNote); // 👈 ADD THIS LINE
+            noteResetBtn.addEventListener('click', resetNoteForm); // 👈 ADD THIS LINE
             chartPeriod.addEventListener('change', renderAllCharts);
             dateEl.addEventListener('change', renderIncomeForSelectedMonth);
+            setupVoiceInput(); // For expenses form
+            setupNoteVoiceInput(); // 👈 ADD THIS LINE for notes form
 
             hamburgerBtn.addEventListener('click', (e) => { e.stopPropagation(); navLinks.classList.toggle('active'); });
             document.addEventListener('click', (e) => { if (!navLinks.contains(e.target) && !hamburgerBtn.contains(e.target)) navLinks.classList.remove('active'); });
 
+            // --- NEW: Toggle for note creation form ---
+            const toggleNoteFormBtn = document.getElementById('toggleNoteFormBtn');
+            const noteCreationCard = document.getElementById('note-creation-card');
+            if (toggleNoteFormBtn && noteCreationCard) {
+                toggleNoteFormBtn.addEventListener('click', () => {
+                    const isVisible = noteCreationCard.style.display !== 'none';
+                    if (isVisible) {
+                        noteCreationCard.style.display = 'none';
+                        toggleNoteFormBtn.textContent = 'Show Form';
+                    } else {
+                        noteCreationCard.style.display = 'block';
+                        toggleNoteFormBtn.textContent = 'Hide Form';
+                    }
+                });
+            }
+            // --- END NEW ---
+
+            noteViewModal.addEventListener('click', (e) => {
+                if (e.target === noteViewModal || e.target.closest('.close-btn')) {
+                    noteViewModal.style.display = 'none';
+                }
+            });
             // --- NEW: Form Toggle Logic ---
             toggleReturnBtn.addEventListener('click', () => {
                 returnFormContainer.style.display = 'block';
@@ -2176,6 +2434,7 @@
         }
 
         init();
+
 
     </script>
 

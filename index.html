@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="TALYEXP.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
 </head>
 
 <body>
@@ -82,30 +83,43 @@
                         🍔
                     </button>
 
+                    <!-- UPDATED: Navbar structure -->
                     <div id="nav-links">
                         <button id="homeBtn" class="btn small active">Home</button>
                         <button id="txBtn" class="btn small ghost">Transactions</button>
                         <button id="savingsBtn" class="btn small ghost">Savings</button>
-                        <button id="returnsBtn" class="btn small ghost">Returns</button>
-                        <button id="payablesBtn" class="btn small ghost">Payables</button>
+                        <button id="returnsBtn" class="btn small ghost">Returns (To be taken)</button>
+                        <button id="payablesBtn" class="btn small ghost">Payables (To be Returned)</button>
                         <button id="notesBtn" class="btn small ghost">Notes</button>
-                        <button id="contactBtn" class="btn small ghost">Contact Me</button> <button id="calculatorBtn"
-                            class="btn ghost small" title="Calculator" style="padding: 6px 8px;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                viewBox="0 0 256 256">
-                                <path
-                                    d="M184,32H72A16,16,0,0,0,56,48V208a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V48A16,16,0,0,0,184,32Zm0,176H72V48H184ZM128,80a12,12,0,1,1-12,12A12,12,0,0,1,128,80Zm36,28a12,12,0,1,1-12,12A12,12,0,0,1,164,108Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,128,108Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,92,108Zm72,36a12,12,0,1,1-12,12A12,12,0,0,1,164,144Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,128,144Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,92,144Zm72,36a12,12,0,1,1-12,12A12,12,0,0,1,164,180Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,128,180Z">
-                                </path>
-                            </svg>
-                            <div class="calcbtn">Calculator</div>
-                        </button>
                         <button id="themeToggleBtn" class="btn ghost small" title="Toggle Theme"
                             style="padding: 6px 8px;">
                             ☀️ / 🌙
                         </button>
-                        <button id="fullResetBtn" class="btn small danger">Reset App</button>
-                        <button id="logoutBtn" class="btn ghost small">Logout</button>
+
+                        <!-- NEW: Settings Container -->
+                        <div class="settings-container">
+                            <button id="settingsBtn" class="btn ghost small">settings</button>
+                            <div id="settings-popout">
+                                <button id="contactBtn" class="btn small ghost">Contact Me</button>
+                                <button id="calculatorBtn" class="btn ghost small" title="Calculator"
+                                    style="padding: 6px 8px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        viewBox="0 0 256 256">
+                                        <path
+                                            d="M184,32H72A16,16,0,0,0,56,48V208a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V48A16,16,0,0,0,184,32Zm0,176H72V48H184ZM128,80a12,12,0,1,1-12,12A12,12,0,0,1,128,80Zm36,28a12,12,0,1,1-12,12A12,12,0,0,1,164,108Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,128,108Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,92,108Zm72,36a12,12,0,1,1-12,12A12,12,0,0,1,164,144Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,128,144Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,92,144Zm72,36a12,12,0,1,1-12,12A12,12,0,0,1,164,180Zm-36,0a12,12,0,1,1-12,12A12,12,0,0,1,128,180Z">
+                                        </path>
+                                    </svg>
+                                    <div class="calcbtn">Calculator</div>
+                                </button>
+                                <button id="fullResetBtn" class="btn small danger">Reset App</button>
+                                <button id="deleteAccountBtn" class="btn small danger">Delete Account</button>
+                                <button id="logoutBtn" class="btn ghost small">Logout</button>
+                            </div>
+                        </div>
+                        <!-- END: Settings Container -->
+
                     </div>
+                    <!-- END: Updated Navbar -->
                 </nav>
             </div>
         </header>
@@ -193,7 +207,7 @@
                             </div>
 
                             <div id="return-form-container">
-                                <h4>Add details of amount lent (Pending Return)</h4>
+                                <h4>Add details of amount you have given to:</h4>
                                 <label for="return-person">Person's Name (Money given to)</label>
                                 <input id="return-person" class="input" type="text" placeholder="e.g., John Doe" />
                                 <div class="form-row" style="margin-top: 14px;">
@@ -218,7 +232,7 @@
                             </div>
 
                             <div id="payable-form-container" style="display: none;">
-                                <h4>Add details of amount to be given (Payable)</h4>
+                                <h4>Add details of amount to whome to be paid:</h4>
                                 <label for="payable-person">Person's Name (Money to be given to)</label>
                                 <input id="payable-person" class="input" type="text" placeholder="e.g., Jane Smith" />
                                 <div class="form-row" style="margin-top: 14px;">
@@ -227,7 +241,7 @@
                                         <input id="payable-amount" class="input" type="number" placeholder="0.00" />
                                     </div>
                                     <div style="width:150px">
-                                        <label for="payable-date">Date</label>
+                                        <label for="payable-date">Received Date</label>
                                         <input id="payable-date" class="input" type="date" />
                                     </div>
                                 </div>
@@ -466,7 +480,7 @@
             </div>
             <div style="display: flex; gap: 10px; justify-content: center;">
                 <button id="password-modal-cancel" class="btn ghost">Cancel</button>
-                <button id="password-modal-confirm" class="btn danger">Confirm Reset</button>
+                <button id="password-modal-confirm" class="btn danger">Confirm</button> <!-- Changed text -->
             </div>
         </div>
     </div>
@@ -577,14 +591,14 @@
         const loginScreen = document.getElementById('login-screen');
         const appContainer = document.getElementById('app-container');
         const authBtn = document.getElementById('authBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const fullResetBtn = document.getElementById('fullResetBtn');
+        const logoutBtn = document.getElementById('logoutBtn'); // Now in settings
+        const fullResetBtn = document.getElementById('fullResetBtn'); // Now in settings
         const homeBtn = document.getElementById('homeBtn');
         const txBtn = document.getElementById('txBtn');
         const savingsBtn = document.getElementById('savingsBtn');
         const returnsBtn = document.getElementById('returnsBtn'); // --- NEW ---
         const payablesBtn = document.getElementById('payablesBtn'); // 👈 ADDED
-        const contactBtn = document.getElementById('contactBtn'); // --- NEW ---
+        const contactBtn = document.getElementById('contactBtn'); // Now in settings
         const themeToggleBtn = document.getElementById('themeToggleBtn'); // --- NEW ---
         const homeView = document.getElementById('home-view');
         const transactionsView = document.getElementById('transactions-view');
@@ -627,8 +641,6 @@
         const updatePayableBtn = document.getElementById('updatePayableBtn'); // 👈 ADDED
         const toggleReturnBtn = document.getElementById('toggle-return-form');
         const togglePayableBtn = document.getElementById('toggle-payable-form');
-        const returnFormContainer = document.getElementById('return-form-container');
-        const payableFormContainer = document.getElementById('payable-form-container');
         const payablesGrid = document.getElementById('payablesGrid'); // 👈 ADDED
         const payablesSearch = document.getElementById('payablesSearch'); // 👈 ADDED
 
@@ -665,7 +677,7 @@
         const downloadQuarterlyBtn = document.getElementById('downloadQuarterlyBtn');
         const voiceBtn = document.getElementById('voiceBtn');
         const calculatorModal = document.getElementById('calculator-modal');
-        const calculatorBtn = document.getElementById('calculatorBtn');
+        const calculatorBtn = document.getElementById('calculatorBtn'); // Now in settings
         const userGreetingEl = document.getElementById('user-greeting');
         const hamburgerBtn = document.getElementById('hamburger-btn');
         const navLinks = document.getElementById('nav-links');
@@ -675,6 +687,8 @@
         const passwordModalInput = document.getElementById('password-modal-input');
         const passwordModalConfirm = document.getElementById('password-modal-confirm');
         const passwordModalCancel = document.getElementById('password-modal-cancel');
+        const passwordModalTitle = document.getElementById('password-modal-title'); // Get title
+        const passwordModalMessage = document.getElementById('password-modal-message'); // Get message
 
         // --- NEW: About Me Modal Elements ---
         const aboutMeBtn = document.getElementById('aboutMeBtn');
@@ -1889,7 +1903,9 @@
         }
 
         // --- Data Export & PDF Report Generation ---
-        function generatePdfReport(dataToExport, filename, periodTitle) {
+
+        // UPDATED: Added 'monthKey' parameter
+        function generatePdfReport(dataToExport, filename, periodTitle, monthKey) {
             document.body.style.cursor = 'wait';
             const { jsPDF } = window.jspdf;
             if (!jsPDF) {
@@ -1922,25 +1938,44 @@
 
             const total = dataToExport.reduce((sum, item) => sum + Number(item.amount), 0);
             const count = dataToExport.length;
-            const average = count > 0 ? total / count : 0;
+            // const average = count > 0 ? total / count : 0; // <-- REMOVED
             const categoryTotals = dataToExport.reduce((acc, { category, amount }) => {
                 acc[category] = (acc[category] || 0) + Number(amount); return acc;
             }, {});
             const topCategory = Object.keys(categoryTotals).length > 0 ? Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0] : ['N/A', 0];
 
+            // --- UPDATED: PDF Summary Layout ---
             const summaryY = 40;
             doc.setFillColor(245, 245, 245);
             doc.roundedRect(14, summaryY, doc.internal.pageSize.getWidth() - 28, 25, 3, 3, 'F');
             doc.setFontSize(10); doc.setTextColor(50);
+
             doc.text(`Total Expenses:`, 20, summaryY + 7);
             doc.text(`Total Transactions:`, 20, summaryY + 14);
-            doc.text(`Average Transaction:`, doc.internal.pageSize.getWidth() / 2, summaryY + 7);
-            doc.text(`Top Category:`, doc.internal.pageSize.getWidth() / 2, summaryY + 14);
+
             doc.setFont('helvetica', 'bold');
-            doc.text(numberFormat(total), 60, summaryY + 7);
-            doc.text(String(count), 60, summaryY + 14);
-            doc.text(numberFormat(average), doc.internal.pageSize.getWidth() / 2 + 40, summaryY + 7);
-            doc.text(`${topCategory[0]} (${numberFormat(topCategory[1])})`, doc.internal.pageSize.getWidth() / 2 + 40, summaryY + 14);
+            doc.text(numberFormat(total), 75, summaryY + 7); // Adjusted X
+            doc.text(String(count), 75, summaryY + 14); // Adjusted X
+            doc.setFont('helvetica', 'normal'); // Reset
+
+            // Conditional layout for income vs. top category
+            if (monthKey && monthlyIncomes[monthKey]) {
+                // Monthly report layout
+                const selectedIncome = monthlyIncomes[monthKey];
+                doc.text(`Selected Month Income:`, doc.internal.pageSize.getWidth() / 2, summaryY + 7);
+                doc.text(`Top Category:`, doc.internal.pageSize.getWidth() / 2, summaryY + 14);
+
+                doc.setFont('helvetica', 'bold');
+                doc.text(numberFormat(selectedIncome), doc.internal.pageSize.getWidth() / 2 + 50, summaryY + 7);
+                doc.text(`${topCategory[0]} (${numberFormat(topCategory[1])})`, doc.internal.pageSize.getWidth() / 2 + 50, summaryY + 14);
+            } else {
+                // Yearly/Quarterly report layout (no income)
+                doc.text(`Top Category:`, doc.internal.pageSize.getWidth() / 2, summaryY + 7); // Moved up
+
+                doc.setFont('helvetica', 'bold');
+                doc.text(`${topCategory[0]} (${numberFormat(topCategory[1])})`, doc.internal.pageSize.getWidth() / 2 + 50, summaryY + 7); // Moved up
+            }
+            // --- END: PDF Summary Layout Update ---
 
             doc.autoTable({
                 head: [['Date', 'Title', 'Category', 'Amount (INR)']],
@@ -1975,7 +2010,9 @@
 
             const periodTitle = new Date(year, monthIndex, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
             if (dataToExport.length === 0) { alert(`No data available for ${periodTitle}.`); return; }
-            generatePdfReport(dataToExport, `TALYEXP_${periodTitle.replace(' ', '_')}.pdf`, periodTitle);
+
+            // UPDATED: Pass 'period' (monthKey) to the report function
+            generatePdfReport(dataToExport, `TALYEXP_${periodTitle.replace(' ', '_')}.pdf`, periodTitle, period);
         }
 
         function handleYearlyDownload() {
@@ -1987,7 +2024,7 @@
                 : expenses.filter(e => new Date(e.date).getFullYear() === parseInt(year));
 
             if (data.length === 0) { alert(`No data for the year ${year}.`); return; }
-            generatePdfReport(data, `talyexp_yearly_${year}.pdf`, `Year ${year}`);
+            generatePdfReport(data, `talyexp_yearly_${year}.pdf`, `Year ${year}`); // No monthKey passed
         }
 
         function handleQuarterlyDownload() {
@@ -2003,7 +2040,7 @@
                 : expenses.filter(e => { const d = new Date(e.date); return d.getFullYear() === parseInt(year) && d.getMonth() >= startMonth && d.getMonth() <= endMonth; });
 
             if (data.length === 0) { alert(`No data for Q${q} ${year}.`); return; }
-            generatePdfReport(data, `talyexp_quarterly_Q${q}-${year}.pdf`, `Quarter ${q}, ${year}`);
+            generatePdfReport(data, `talyexp_quarterly_Q${q}-${year}.pdf`, `Quarter ${q}, ${year}`); // No monthKey passed
         }
 
         // --- Data Reset ---
@@ -2016,7 +2053,16 @@
         }
 
         // --- NEW: Helper function to get password from modal ---
-        function getPasswordConfirmation() {
+        function getPasswordConfirmation(title = 'Confirm Action', message = 'To confirm, please enter your login password:', btnText = 'Confirm') {
+            // Set modal text
+            passwordModalTitle.textContent = title;
+            passwordModalMessage.textContent = message;
+            passwordModalConfirm.textContent = btnText;
+            passwordModalConfirm.classList.remove('danger'); // Ensure it's not always danger
+            if (btnText.toLowerCase().includes('delete') || btnText.toLowerCase().includes('reset')) {
+                passwordModalConfirm.classList.add('danger');
+            }
+
             passwordModal.style.display = 'flex';
             passwordModalInput.value = '';
             passwordModalInput.focus();
@@ -2044,6 +2090,11 @@
                     passwordModal.removeEventListener('click', modalClickHandler);
                     passwordModalInput.removeEventListener('keypress', keypressHandler);
                     passwordModal.style.display = 'none';
+                    // Reset modal text to default
+                    passwordModalTitle.textContent = 'Confirm Action';
+                    passwordModalMessage.textContent = 'To confirm, please enter your login password:';
+                    passwordModalConfirm.textContent = 'Confirm';
+                    passwordModalConfirm.classList.remove('danger');
                 };
 
                 const modalClickHandler = (e) => {
@@ -2063,10 +2114,12 @@
         async function handleFullReset() {
             if (confirm('DANGER! This will permanently delete all your data (expenses, savings, returns, and payables). Are you sure?')) {
 
-                // --- UPDATE: Replaced prompt() with custom modal ---
-                const password = await getPasswordConfirmation();
-                // const password = prompt("To confirm this action, please enter your login password:");
-                // --- END UPDATE ---
+                // --- UPDATE: Use password modal with custom text ---
+                const password = await getPasswordConfirmation(
+                    'Confirm App Reset',
+                    'This will delete all transactions, savings, and other app data. This CANNOT be undone. Please enter your password to confirm.',
+                    'Confirm Reset'
+                );
 
                 if (!password) {
                     // User cancelled the modal
@@ -2089,13 +2142,13 @@
 
                     alert("Password confirmed. Proceeding with data reset.");
                     // --- NEW: Add payables delete ---
-                    const [expRes, incRes, saveRes, retRes, payRes, metaRes] = await Promise.all([
+                    const [expRes, incRes, saveRes, retRes, payRes, metaRes, notesRes] = await Promise.all([
                         fetch(`/api/expenses/user/${user}`, { method: 'DELETE' }),
                         fetch(`/api/income/user/${user}`, { method: 'DELETE' }),
                         fetch(`/api/savings/user/${user}`, { method: 'DELETE' }),
                         fetch(`/api/returns/user/${user}`, { method: 'DELETE' }), // --- NEW ---
                         fetch(`/api/payables/user/${user}`, { method: 'DELETE' }), // --- NEW ---
-                        fetch(`/api/notes/user/${user}`, { method: 'DELETE' }),
+                        fetch(`/api/notes/user/${user}`, { method: 'DELETE' }), // --- NEW ---
                         fetch('/api/meta/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user }) })
                     ]);
 
@@ -2103,7 +2156,7 @@
                     passwordModalConfirm.disabled = false;
                     passwordModalConfirm.textContent = 'Confirm Reset';
 
-                    if (!expRes.ok || !incRes.ok || !saveRes.ok || !retRes.ok || !payRes.ok || !metaRes.ok) { // --- NEW ---
+                    if (!expRes.ok || !incRes.ok || !saveRes.ok || !retRes.ok || !payRes.ok || !metaRes.ok || !notesRes.ok) { // --- NEW ---
                         throw new Error(`Reset failed on the server after password verification.`);
                     }
                     alert('All your application data has been reset successfully.');
@@ -2116,6 +2169,75 @@
                     console.error("Reset error:", err);
                     alert(`An error occurred during reset. Please try again.`);
                 }
+            }
+        }
+
+        // --- NEW: Delete Account Function ---
+        async function handleDeleteAccount() {
+            if (!confirm('DANGER! This will permanently delete your entire account and all associated data (expenses, savings, notes, etc.). This action CANNOT be undone. Are you sure?')) {
+                return;
+            }
+
+            // Use the existing password modal with custom text
+            const password = await getPasswordConfirmation(
+                'Confirm Account Deletion',
+                'This is your final confirmation. Deleting your account is permanent. Please enter your password to proceed.',
+                'Delete My Account'
+            );
+
+            if (!password) {
+                alert("Password not entered. Account deletion cancelled.");
+                return;
+            }
+
+            const user = sessionStorage.getItem(SESSION_KEY);
+            if (!user) { alert('No user session found. Please log in again.'); return; }
+
+            try {
+                // 1. Verify password (server will verify again, but this is a good pre-check)
+                const verifyRes = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: password })
+                });
+
+                if (!verifyRes.ok) {
+                    alert('Invalid credentials. Account deletion cancelled.');
+                    return;
+                }
+
+                // 2. If password is correct, show loading state
+                alert("Password confirmed. Proceeding with account deletion...");
+
+                passwordModalConfirm.disabled = true;
+                passwordModalConfirm.textContent = 'Deleting...';
+
+                // 3. Call the new delete endpoint
+                const deleteRes = await fetch(`/api/account/delete`, {
+                    method: 'POST', // Using POST for authenticated delete
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: password }) // Send credentials
+                });
+
+                // 4. Reset button text
+                passwordModalConfirm.disabled = false;
+                passwordModalConfirm.textContent = 'Delete My Account'; // Reset text
+
+                if (!deleteRes.ok) {
+                    const errData = await deleteRes.json();
+                    throw new Error(errData.error || 'Account deletion failed on the server.');
+                }
+
+                alert('Your account has been permanently deleted. You will now be logged out.');
+                handleLogout(); // This will reload to the login page
+
+            } catch (err) {
+                // Reset button text on error
+                passwordModalConfirm.disabled = false;
+                passwordModalConfirm.textContent = 'Delete My Account';
+
+                console.error("Account deletion error:", err);
+                alert(`An error occurred during account deletion: ${err.message}`);
             }
         }
 
@@ -2256,8 +2378,53 @@
             setupVoiceInput(); // For expenses form
             setupNoteVoiceInput(); // 👈 ADD THIS LINE for notes form
 
+            // --- NEW: Settings Popout Logic ---
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsPopout = document.getElementById('settings-popout');
+            const deleteAccountBtn = document.getElementById('deleteAccountBtn'); // For request 2
+
+            if (settingsBtn && settingsPopout) {
+                settingsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent document click listener from closing it immediately
+
+                    // Toggle for both popout and button (for arrow)
+                    const isActive = settingsPopout.classList.toggle('active');
+                    settingsBtn.classList.toggle('active', isActive);
+
+                    // Adjust positioning for desktop view
+                    if (window.innerWidth > 1100) {
+                        const btnRect = settingsBtn.getBoundingClientRect();
+                        const navLinksRect = navLinks.getBoundingClientRect();
+                        // Position relative to the navLinks container
+                        settingsPopout.style.bottom = (navLinksRect.bottom - btnRect.bottom) + 'px';
+                        settingsPopout.style.right = (btnRect.width + 10) + 'px'; // Pops out to the left
+                    } else {
+                        // Reset desktop styles for mobile view
+                        settingsPopout.style.bottom = '';
+                        settingsPopout.style.right = '';
+                    }
+                });
+            }
+
+            // Add listener for new delete button
+            if (deleteAccountBtn) {
+                deleteAccountBtn.addEventListener('click', handleDeleteAccount);
+            }
+            // --- END: Settings Popout Logic ---
+
+
             hamburgerBtn.addEventListener('click', (e) => { e.stopPropagation(); navLinks.classList.toggle('active'); });
-            document.addEventListener('click', (e) => { if (!navLinks.contains(e.target) && !hamburgerBtn.contains(e.target)) navLinks.classList.remove('active'); });
+            document.addEventListener('click', (e) => {
+                if (!navLinks.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+                    navLinks.classList.remove('active');
+                }
+
+                // NEW: Close settings popout if clicking outside
+                if (settingsPopout && !settingsPopout.contains(e.target) && !settingsBtn.contains(e.target)) {
+                    settingsPopout.classList.remove('active');
+                    settingsBtn.classList.remove('active');
+                }
+            });
 
             // --- NEW: Toggle for note creation form ---
             const toggleNoteFormBtn = document.getElementById('toggleNoteFormBtn');

@@ -248,13 +248,30 @@ app.put('/api/expenses/:id', async (req, res) => {
   }
 });
 
+// server.js (Apply this structure to DELETE routes for Expense, Saving, PendingReturn, and Payable)
+
 app.delete('/api/expenses/:id', async (req, res) => {
-  try {
-    await Expense.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Expense deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    try {
+        const result = await Expense.deleteOne({ _id: req.params.id });
+        
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: 'Expense not found' });
+        }
+        
+        // Success: Return a clear, successful response
+        res.json({ message: 'Expense deleted successfully' });
+    } catch (err) {
+        // --- CRITICAL FIX: Explicitly handle invalid ID format (CastError) ---
+        if (err.name === 'CastError') {
+            console.error("Mongoose CastError: Invalid ID format.", req.params.id); 
+            // Return a specific 400 Bad Request error to the client
+            return res.status(400).json({ error: 'Invalid transaction ID format sent to server.' });
+        }
+        // ---------------------------------------------------------------------
+
+        console.error("Expense Delete Error:", err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.delete('/api/expenses/user/:user', async (req, res) => {

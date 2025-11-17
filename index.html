@@ -83,7 +83,6 @@
                         🍔
                     </button>
 
-                    <!-- UPDATED: Navbar structure -->
                     <div id="nav-links">
                         <button id="homeBtn" class="btn small active">Home</button>
                         <button id="txBtn" class="btn small ghost">Transactions</button>
@@ -96,10 +95,10 @@
                             ☀️ / 🌙
                         </button>
 
-                        <!-- NEW: Settings Container -->
                         <div class="settings-container">
                             <button id="settingsBtn" class="btn ghost small">settings</button>
                             <div id="settings-popout">
+                                <button id="addRecurringBtn" class="btn small ghost">Add Recurring</button>
                                 <button id="contactBtn" class="btn small ghost">Contact Me</button>
                                 <button id="calculatorBtn" class="btn ghost small" title="Calculator"
                                     style="padding: 6px 8px;">
@@ -116,10 +115,7 @@
                                 <button id="logoutBtn" class="btn ghost small">Logout</button>
                             </div>
                         </div>
-                        <!-- END: Settings Container -->
-
                     </div>
-                    <!-- END: Updated Navbar -->
                 </nav>
             </div>
         </header>
@@ -134,6 +130,7 @@
                                 <p class="subtitle">Add more transactions to see smart suggestions.</p>
                             </div>
                         </div>
+
                         <div class="card" style="flex-grow: 1;">
                             <div style="display:flex; justify-content: space-between; align-items: center;">
                                 <label for="monthlyIncome">Monthly Income (for selected month)</label>
@@ -146,6 +143,17 @@
                             <div style="margin-top:8px" class="subtitle">Remaining this month: <strong
                                     id="remaining">₹0.00</strong></div>
                         </div>
+
+                        <div class="card" style="flex-shrink: 0;">
+                            <h3 style="margin-top:0; color: var(--accent);">Monthly Recurring</h3>
+                            <div id="recurring-items-container">
+                                <p id="recurring-items-placeholder" class="subtitle">
+                                    Set up recurring transactions or savings (like rent, subscriptions, or SIPs) to add
+                                    them with a single click each month.
+                                </p>
+                            </div>
+                        </div>
+
                         <div class="card" style="flex-shrink: 0;">
                             <div>
                                 <h4>Add your expenses:</h4>
@@ -480,7 +488,7 @@
             </div>
             <div style="display: flex; gap: 10px; justify-content: center;">
                 <button id="password-modal-cancel" class="btn ghost">Cancel</button>
-                <button id="password-modal-confirm" class="btn danger">Confirm</button> <!-- Changed text -->
+                <button id="password-modal-confirm" class="btn danger">Confirm</button>
             </div>
         </div>
     </div>
@@ -557,6 +565,9 @@
         let payables = [];
         let editingPayableId = null;
 
+        // --- NEW: Recurring Items State ---
+        let recurringItems = [];
+
         let meta = { startTs: Date.now() };
         let editingId = null;
         let editingSavingId = null; // 👈 ADDED for saving update
@@ -621,6 +632,11 @@
         const addSavingBtn = document.getElementById('addSavingBtn');
         const updateSavingBtn = document.getElementById('updateSavingBtn'); // 👈 ADDED
         const savingsGrid = document.getElementById('savingsGrid'); // --- UPDATE ---
+
+        // --- NEW: Recurring Item DOM Elements ---
+        const addRecurringBtn = document.getElementById('addRecurringBtn');
+        const recurringItemsContainer = document.getElementById('recurring-items-container');
+        const recurringItemsPlaceholder = document.getElementById('recurring-items-placeholder');
 
         // --- NEW: Pending Return DOM Elements ---
         const returnPersonEl = document.getElementById('return-person');
@@ -949,6 +965,7 @@
                 console.error('Error fetching notes:', err.message);
             }
         }
+
         // --- View Management ---
         function showView(viewId) {
             homeView.style.display = 'none';
@@ -1010,75 +1027,64 @@
         }
 
         // --- Data Persistence (Backend) ---
-        //
-        // 🔥 ===================================================================
-        // 🔥  THIS IS THE PRIMARY BUG FIX
-        // 🔥  The old function fetched income and meta but never processed them.
-        // 🔥  This new function correctly parses all data and populates
-        // 🔥  the global state (monthlyIncomes, meta) on login/refresh.
-        // 🔥 ===================================================================
-        //
         async function loadDataAndRender() {
             const user = sessionStorage.getItem(SESSION_KEY);
             if (!user) return;
 
             try {
-                // 1. Fetch all responses in parallel
+                // 👇 UPDATED Promise.all
                 const [
                     expensesRes, incomeRes, metaRes,
-                    savingsRes, returnsRes, payablesRes, notesRes
+                    savingsRes, returnsRes, payablesRes, notesRes, recurringRes
                 ] = await Promise.all([
                     fetch(`/api/expenses/${user}`),
-                    fetch(`/api/income/${user}`),       // Fetches the array of income objects
-                    fetch(`/api/meta/${user}`),         // Fetches the single meta object
+                    fetch(`/api/income/${user}`),
+                    fetch(`/api/meta/${user}`),
                     fetch(`/api/savings/${user}`),
                     fetch(`/api/returns/${user}`),
                     fetch(`/api/payables/${user}`),
-                    fetch(`/api/notes/user/${user}`)
+                    fetch(`/api/notes/user/${user}`),
+                    fetch(`/api/recurring/${user}`) // 👈 ADDED
                 ]);
 
-                // 2. Check if all fetches were successful
                 if (
                     !expensesRes.ok || !incomeRes.ok || !metaRes.ok ||
-                    !savingsRes.ok || !returnsRes.ok || !payablesRes.ok || !notesRes.ok
+                    !savingsRes.ok || !returnsRes.ok || !payablesRes.ok || !notesRes.ok || !recurringRes.ok // 👈 ADDED
                 ) {
-                    throw new Error("Failed to fetch one or more user data resources");
+                    throw new Error("Failed to fetch user data");
                 }
 
-                // 3. Parse all data from the responses
-                const expensesData = await expensesRes.json();
-                const incomeData = await incomeRes.json();     // This is an ARRAY: [{monthKey, income}, ...]
-                const metaData = await metaRes.json();         // This is an OBJECT: {startTs, ...}
-                const savingsData = await savingsRes.json();
-                const returnsData = await returnsRes.json();
-                const payablesData = await payablesRes.json();
-                const notesData = await notesRes.json();
+                // Load data
+                expenses = await expensesRes.json();
+                savings = await savingsRes.json();
+                returns = await returnsRes.json();
+                payables = await payablesRes.json();
+                notes = await notesRes.json();
+                recurringItems = await recurringRes.json(); // 👈 ADDED
 
-                // 4. 🔥 BUG FIX: Populate global state *from* the parsed data
-                expenses = expensesData;
-                savings = savingsData;
-                returns = returnsData;
-                payables = payablesData;
-                notes = notesData;
-                meta = metaData || { startTs: Date.now() }; // Assign to global meta object
-
-                // 5. 🔥 BUG FIX: Process the incomeData ARRAY into the monthlyIncomes MAP
-                monthlyIncomes = incomeData.reduce((acc, curr) => {
-                    acc[curr.monthKey] = curr.income;
+                // --- Load Income & Meta ---
+                const incomeData = await incomeRes.json();
+                monthlyIncomes = incomeData.reduce((acc, item) => {
+                    acc[item.monthKey] = item.income;
                     return acc;
-                }, {}); // This correctly populates the { "YYYY-MM": amount } map
+                }, {});
+                meta = await metaRes.json();
+                // ---
 
-                // 6. Now that all data is loaded, set the welcome message
+                // ✅ FIX 1 — Show Username Again
                 const capitalizedUser = user.charAt(0).toUpperCase() + user.slice(1);
                 userGreetingEl.innerHTML = `
-                    Welcome, 
-                    <strong style="color: var(--accent);">
-                        ${escapeHtml(capitalizedUser)}
-                    </strong>
-                `;
+            Welcome, 
+            <strong style="color: var(--accent);">
+                ${escapeHtml(capitalizedUser)}
+            </strong>
+        `;
 
-                // 7. And *now* render all components that depend on this global state
+                // Render Home widgets
                 renderHome();
+                renderRecurringItems(); // 👈 ADDED
+
+                // ✅ FIX 2 — Always fully refresh sections
                 renderTransactions();
                 renderSavings();
                 renderReturns();
@@ -1086,16 +1092,11 @@
                 renderNotes();
 
             } catch (err) {
-                console.error("Error loading data:", err);
+                console.error(err);
                 alert("Could not load your data. Please try again.");
                 handleLogout();
             }
         }
-        //
-        // 🔥 ===================================================================
-        // 🔥  END OF BUG FIX
-        // 🔥 ===================================================================
-        //
 
 
         // --- Rendering ---
@@ -1116,8 +1117,193 @@
             renderAllCharts();
             generateSmartInsights();
         }
-        // index.html: Inside <script> tag, add this function
 
+        // --- NEW: Recurring Items Functions ---
+
+        // Renders the items in the "Monthly Recurring" card
+        function renderRecurringItems() {
+            // Clear only items, not the placeholder
+            recurringItemsContainer.querySelectorAll('.recurring-item').forEach(el => el.remove());
+
+            if (recurringItems.length === 0) {
+                recurringItemsPlaceholder.style.display = 'block';
+                return;
+            }
+
+            recurringItemsPlaceholder.style.display = 'none';
+
+            recurringItems.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'recurring-item';
+                const typeLabel = item.type === 'Expense' ? 'Expense' : 'Saving';
+
+                itemEl.innerHTML = `
+                    <div class="recurring-item-info">
+                        <span class="recurring-item-title">${escapeHtml(item.title)} (${escapeHtml(item.category)})</span>
+                        <span class="recurring-item-details">${numberFormat(item.amount)} | Day: ${item.dayOfMonth} | ${typeLabel}</span>
+                    </div>
+                    <div>
+                        <button class="btn-post-recurring" onclick="postRecurringItem('${item._id}')">Post</button>
+                        <button class="btn-delete-recurring" onclick="deleteRecurringItem('${item._id}')" title="Delete this recurring setup">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96ZM192,208H64V64H192Zm-96-24V96a8,8,0,0,1,16,0v88a8,8,0,0,1-16,0Zm48,0V96a8,8,0,0,1,16,0v88a8,8,0,0,1-16,0Z"></path></svg>
+                        </button>
+                    </div>
+                `;
+                recurringItemsContainer.appendChild(itemEl);
+            });
+        }
+
+        // Shows the modal with the form to add a new recurring item
+        function showAddRecurringModal() {
+            txModalTitle.textContent = 'Add New Recurring Item';
+            txModalBody.innerHTML = `
+                <form id="recurring-form">
+                    <div>
+                        <label for="recurring-type">Type</label>
+                        <select id="recurring-type" class="input">
+                            <option value="Expense">Expense</option>
+                            <option value="Saving">Saving</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="recurring-title">Title</label>
+                        <input id="recurring-title" class="input" type="text" placeholder="e.g., Netflix Subscription">
+                    </div>
+                    <div>
+                        <label for="recurring-category">Category</label>
+                        <input id="recurring-category" class="input" type="text" placeholder="e.g., Entertainment">
+                    </div>
+                    <div class="form-row">
+                        <div>
+                            <label for="recurring-amount">Amount (₹)</label>
+                            <input id="recurring-amount" class="input" type="number" placeholder="199.00">
+                        </div>
+                        <div>
+                            <label for="recurring-day">Day of Month (1-31)</label>
+                            <input id="recurring-day" class="input" type="number" min="1" max="31" placeholder="15">
+                        </div>
+                    </div>
+                    <button type="button" id="saveRecurringBtn" class="btn">Save Recurring Item</button>
+                </form>
+            `;
+            // Add listener to the new save button
+            document.getElementById('saveRecurringBtn').addEventListener('click', handleSaveRecurringItem);
+            txModal.style.display = 'flex';
+        }
+
+        // Handles saving the new recurring item from the modal
+        async function handleSaveRecurringItem() {
+            const user = sessionStorage.getItem(SESSION_KEY);
+            const title = document.getElementById('recurring-title').value.trim();
+            const category = document.getElementById('recurring-category').value.trim() || 'Other';
+            const type = document.getElementById('recurring-type').value;
+            const amount = parseFloat(document.getElementById('recurring-amount').value || 0);
+            const dayOfMonth = parseInt(document.getElementById('recurring-day').value || 0);
+
+            if (!title || !amount || !dayOfMonth) {
+                alert('Please fill in Title, Amount, and Day of Month.');
+                return;
+            }
+            if (dayOfMonth < 1 || dayOfMonth > 31) {
+                alert('Day of Month must be between 1 and 31.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/recurring', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user, title, amount, category, type, dayOfMonth })
+                });
+                if (!res.ok) throw new Error('Failed to save recurring item');
+
+                await loadDataAndRender(); // This will re-fetch and re-render everything
+                txModal.style.display = 'none';
+                alert('Recurring item saved!');
+
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // Called when user clicks "Post" on a recurring item
+        window.postRecurringItem = async (id) => {
+            const item = recurringItems.find(i => i._id === id);
+            if (!item) return;
+
+            const user = sessionStorage.getItem(SESSION_KEY);
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth(); // 0-11
+            const day = item.dayOfMonth;
+
+            // Ensure date is valid for the current month (e.g., handles Feb 30th)
+            const postDate = new Date(year, month, day);
+            if (postDate.getMonth() !== month) {
+                // If day is invalid (e.g., 31 in Feb), use last day of month
+                postDate.setDate(0);
+            }
+            const dateString = postDate.toISOString().slice(0, 10);
+            const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+
+            try {
+                if (item.type === 'Expense') {
+                    const res = await fetch('/api/expenses', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user: user,
+                            title: item.title,
+                            amount: item.amount,
+                            date: dateString,
+                            category: item.category
+                        })
+                    });
+                    if (!res.ok) throw new Error('Failed to post recurring expense');
+                    alert(`Expense "${item.title}" posted for ${dateString}.`);
+
+                } else if (item.type === 'Saving') {
+                    const res = await fetch('/api/savings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user: user,
+                            title: item.title,
+                            amount: item.amount,
+                            monthKey: monthKey
+                        })
+                    });
+                    if (!res.ok) throw new Error('Failed to post recurring saving');
+                    alert(`Saving "${item.title}" posted for ${monthKey}.`);
+                }
+
+                await loadDataAndRender(); // Refresh all data and charts
+
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // Called when user clicks "X" (delete) on a recurring item
+        window.deleteRecurringItem = async (id) => {
+            if (!confirm('Are you sure you want to delete this recurring item setup? This will not delete past transactions.')) return;
+
+            try {
+                const res = await fetch(`/api/recurring/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Failed to delete recurring item');
+
+                await loadDataAndRender(); // This will re-fetch and re-render
+                alert('Recurring item setup deleted.');
+
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // --- END: Recurring Items Functions ---
+
+
+        // index.html: Inside <script> tag, add this function
         function setupNoteVoiceInput() {
             if (!('webkitSpeechRecognition' in window)) {
                 noteVoiceBtn.style.display = 'none';
@@ -1149,9 +1335,7 @@
             const selectedDateStr = dateEl.value;
             if (!selectedDateStr) return;
             const monthKey = selectedDateStr.slice(0, 7);
-            
-            // This now works because monthlyIncomes is populated by loadDataAndRender()
-            const incomeForMonth = monthlyIncomes[monthKey] || 0; 
+            const incomeForMonth = monthlyIncomes[monthKey] || 0;
             monthlyIncomeEl.value = incomeForMonth > 0 ? incomeForMonth : '';
 
             // --- UPDATE: 'PG Rent' is now included in monthTotal because EXCLUDE_CATEGORY is "" ---
@@ -1355,11 +1539,17 @@
                 group = groupedExpenses[monthKey];
                 items = group?.transactions;
                 txModalTitle.textContent = `${group?.label || ""} - Expenses`;
-            } else {
+            } else if (type === "saving") { // 👈 CHANGED
                 group = groupedSavings[monthKey];
                 items = group?.items;
                 txModalTitle.textContent = `${group?.label || ""} - Savings`;
+            } else {
+                // This case is for the new recurring modal, clear the modal
+                txModalBody.innerHTML = "";
+                txModal.style.display = "flex";
+                return;
             }
+
 
             // ------------------------------
             // FIX 1 — If month is empty after deletion
@@ -1367,11 +1557,9 @@
             if (!group || !items || items.length === 0) {
                 txModal.style.display = "none";
 
-                if (!group || !items || items.length === 0) {
-                    txModal.style.display = "none";
-                    return;
-                }
-
+                // We need to re-render the underlying view to remove the card
+                if (type === 'expense') renderTransactions();
+                if (type === 'saving') renderSavings();
 
                 return;
             }
@@ -1794,9 +1982,7 @@
             const data = getFilteredExpenses(); // This now includes 'PG Rent'
             const spent = data.reduce((s, x) => s + Number(x.amount), 0);
             const monthKey = chartPeriod.value;
-            
-            // This now works because monthlyIncomes is populated
-            const incomeForSelectedMonth = monthlyIncomes[monthKey] || 0; 
+            const incomeForSelectedMonth = monthlyIncomes[monthKey] || 0;
             const budget = incomeForSelectedMonth;
 
             // --- UPDATE: Use getChartBaseOptions() ---
@@ -1855,7 +2041,7 @@
                 const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
                 labels.push(d.toLocaleString('default', { month: 'short' }));
 
-                // Get Income (This now works!)
+                // Get Income
                 incomePoints.push(monthlyIncomes[key] || 0);
 
                 // Get Expenses (This now includes 'PG Rent')
@@ -1984,9 +2170,7 @@
             }
 
             const totalCurrentSpent = currentMonthExpenses.reduce((s, e) => s + Number(e.amount), 0);
-            
-            // This now works because monthlyIncomes is populated
-            const currentIncome = monthlyIncomes[currentMonthKey] || 0; 
+            const currentIncome = monthlyIncomes[currentMonthKey] || 0;
             if (currentIncome > 0) {
                 const percentSpent = Math.round(((totalCurrentSpent + totalSaved) / currentIncome) * 100);
                 if (percentSpent > 100) {
@@ -2082,7 +2266,6 @@
             doc.setFont('helvetica', 'normal'); // Reset
 
             // Conditional layout for income vs. top category
-            // This now works because monthlyIncomes is populated
             if (monthKey && monthlyIncomes[monthKey]) {
                 // Monthly report layout
                 const selectedIncome = monthlyIncomes[monthKey];
@@ -2265,14 +2448,16 @@
                     passwordModalConfirm.textContent = 'Resetting...';
 
                     alert("Password confirmed. Proceeding with data reset.");
-                    // --- NEW: Add payables delete ---
-                    const [expRes, incRes, saveRes, retRes, payRes, metaRes, notesRes] = await Promise.all([
+
+                    // 👇 UPDATED Promise.all
+                    const [expRes, incRes, saveRes, retRes, payRes, metaRes, notesRes, recurRes] = await Promise.all([
                         fetch(`/api/expenses/user/${user}`, { method: 'DELETE' }),
                         fetch(`/api/income/user/${user}`, { method: 'DELETE' }),
                         fetch(`/api/savings/user/${user}`, { method: 'DELETE' }),
-                        fetch(`/api/returns/user/${user}`, { method: 'DELETE' }), // --- NEW ---
-                        fetch(`/api/payables/user/${user}`, { method: 'DELETE' }), // --- NEW ---
-                        fetch(`/api/notes/user/${user}`, { method: 'DELETE' }), // --- NEW ---
+                        fetch(`/api/returns/user/${user}`, { method: 'DELETE' }),
+                        fetch(`/api/payables/user/${user}`, { method: 'DELETE' }),
+                        fetch(`/api/notes/user/${user}`, { method: 'DELETE' }),
+                        fetch(`/api/recurring/user/${user}`, { method: 'DELETE' }), // 👈 ADDED
                         fetch('/api/meta/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user }) })
                     ]);
 
@@ -2280,7 +2465,7 @@
                     passwordModalConfirm.disabled = false;
                     passwordModalConfirm.textContent = 'Confirm Reset';
 
-                    if (!expRes.ok || !incRes.ok || !saveRes.ok || !retRes.ok || !payRes.ok || !metaRes.ok || !notesRes.ok) { // --- NEW ---
+                    if (!expRes.ok || !incRes.ok || !saveRes.ok || !retRes.ok || !payRes.ok || !metaRes.ok || !notesRes.ok || !recurRes.ok) { // 👈 ADDED
                         throw new Error(`Reset failed on the server after password verification.`);
                     }
                     alert('All your application data has been reset successfully.');
@@ -2495,6 +2680,9 @@
             contactBtn.addEventListener('click', () => showView('contact')); // --- NEW ---
             notesBtn.addEventListener('click', () => showView('notes')); // --- NEW: Added listener ---
             themeToggleBtn.addEventListener('click', toggleTheme); // --- NEW ---
+
+            addRecurringBtn.addEventListener('click', showAddRecurringModal); // 👈 ADDED
+
             noteUpdateBtn.addEventListener('click', handleUpdateNote); // 👈 ADD THIS LINE
             noteResetBtn.addEventListener('click', resetNoteForm); // 👈 ADD THIS LINE
             chartPeriod.addEventListener('change', renderAllCharts);
@@ -2798,7 +2986,7 @@
                         body: JSON.stringify({ user: sessionStorage.getItem(SESSION_KEY), monthKey, income: incomeValue })
                     });
                     if (!res.ok) throw new Error('Failed to save income');
-                    monthlyIncomes[monthKey] = incomeValue; // Update local state
+                    monthlyIncomes[monthKey] = incomeValue;
                     renderIncomeForSelectedMonth();
                     renderAllCharts();
                     alert(`Income saved for ${new Date(monthKey + '-02').toLocaleString('default', { month: 'long', year: 'numeric' })}.`);
@@ -2835,7 +3023,7 @@
                     splashScreen.style.display = 'none';
                     if (isLoggedIn()) {
                         appContainer.style.display = 'flex';
-                        await loadDataAndRender(); // This now correctly populates all data
+                        await loadDataAndRender();
                     } else {
                         loginScreen.style.display = 'flex';
                     }
@@ -2844,10 +3032,5 @@
         }
 
         init();
-
-
     </script>
-
 </body>
-
-</html>

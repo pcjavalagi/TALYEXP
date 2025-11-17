@@ -46,9 +46,7 @@ const savingSchema = new mongoose.Schema({
   created: { type: Date, default: Date.now },
 });
 
-// server.js: Inside the "📦 Schemas & Models" section
-
-// --- NEW: Schema for Keep Notes ---
+// --- Schema for Keep Notes ---
 const noteSchema = new mongoose.Schema({
     user: String,
     title: String,
@@ -56,10 +54,7 @@ const noteSchema = new mongoose.Schema({
     created: { type: Date, default: Date.now },
 });
 
-const Note = mongoose.model('Note', noteSchema); // 👈 Add this line to define the model
-// ...
-// Ensure Note is included in the list of models when defining them
-// --- UPDATE: New Schema for Pending Returns ---
+// --- Schema for Pending Returns ---
 const pendingReturnSchema = new mongoose.Schema({
     user: String,
     personName: String,
@@ -69,7 +64,7 @@ const pendingReturnSchema = new mongoose.Schema({
     created: { type: Date, default: Date.now },
 });
 
-// --- NEW: Schema for Payables (Amount to be given) ---
+// --- Schema for Payables (Amount to be given) ---
 const payableSchema = new mongoose.Schema({
     user: String,
     personName: String,
@@ -78,9 +73,8 @@ const payableSchema = new mongoose.Schema({
     paymentMode: String,
     created: { type: Date, default: Date.now },
 });
-// --- END NEW ---
 
-// --- NEW: Schema for Contact Form Submissions ---
+// --- Schema for Contact Form Submissions ---
 const contactSchema = new mongoose.Schema({
     user: String, // The user who is logged in
     name: String,
@@ -89,7 +83,6 @@ const contactSchema = new mongoose.Schema({
     query: String,
     created: { type: Date, default: Date.now },
 });
-// --- END NEW ---
 
 const incomeSchema = new mongoose.Schema({
   user: String,
@@ -103,17 +96,19 @@ const metaSchema = new mongoose.Schema({
   lastExport: String,
 });
 
+// Define Models
 const User = mongoose.model('User', userSchema);
 const Expense = mongoose.model('Expense', expenseSchema);
 const Saving = mongoose.model('Saving', savingSchema);
-const PendingReturn = mongoose.model('PendingReturn', pendingReturnSchema); // --- UPDATE ---
-const Payable = mongoose.model('Payable', payableSchema); // --- NEW ---
-const Contact = mongoose.model('Contact', contactSchema); // --- NEW ---
+const Note = mongoose.model('Note', noteSchema);
+const PendingReturn = mongoose.model('PendingReturn', pendingReturnSchema);
+const Payable = mongoose.model('Payable', payableSchema);
+const Contact = mongoose.model('Contact', contactSchema);
 const Income = mongoose.model('Income', incomeSchema);
 const Meta = mongoose.model('Meta', metaSchema);
 
 // ===============================
-// 👤 Auth Routes
+// 👤 Auth & Account Routes
 // ===============================
 app.post('/api/register', async (req, res) => {
   try {
@@ -151,7 +146,6 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// --- UPDATE: Added Reset Password Endpoint ---
 app.post('/api/reset-password', async (req, res) => {
     try {
         const { username, newPassword } = req.body;
@@ -163,7 +157,6 @@ app.post('/api/reset-password', async (req, res) => {
         if (!user)
             return res.status(404).json({ error: 'User not found' });
         
-        // In a real app, we'd validate a token, but here we just reset
         const passwordHash = await bcrypt.hash(newPassword, 10);
         user.passwordHash = passwordHash;
         await user.save();
@@ -173,7 +166,41 @@ app.post('/api/reset-password', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-// --- END UPDATE ---
+
+// --- NEW: Delete Account Endpoint (Point 2) ---
+app.post('/api/account/delete', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const lower = String(username || '').trim().toLowerCase();
+
+    // 1. Verify User Exists
+    const user = await User.findOne({ username: lower });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // 2. Verify Password
+    const ok = await bcrypt.compare(password, user.passwordHash || '');
+    if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+
+    // 3. Delete Data from All Collections
+    await Promise.all([
+        User.deleteOne({ username: lower }), // Delete Auth
+        Meta.deleteOne({ user: lower }),     // Delete Meta
+        Expense.deleteMany({ user: lower }), // Delete Expenses
+        Income.deleteMany({ user: lower }),  // Delete Income
+        Saving.deleteMany({ user: lower }),  // Delete Savings
+        PendingReturn.deleteMany({ user: lower }), // Delete Returns
+        Payable.deleteMany({ user: lower }), // Delete Payables
+        Note.deleteMany({ user: lower }),    // Delete Notes
+        Contact.deleteMany({ user: lower })  // Delete Contact Msgs
+    ]);
+
+    res.json({ message: 'Account deleted successfully' });
+  } catch (err) {
+    console.error("Delete Account Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // ===============================
 // 💰 Expense Routes
@@ -269,7 +296,17 @@ app.post('/api/savings', async (req, res) => {
   }
 });
 
-// --- UPDATE: Added Delete Saving by ID ---
+app.put('/api/savings/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const update = req.body || {};
+        await Saving.findByIdAndUpdate(id, update, { new: true });
+        res.json({ message: 'Saving updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.delete('/api/savings/:id', async (req, res) => {
     try {
         await Saving.findByIdAndDelete(req.params.id);
@@ -278,7 +315,6 @@ app.delete('/api/savings/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-// --- END UPDATE ---
 
 app.delete('/api/savings/user/:user', async (req, res) => {
   try {
@@ -290,7 +326,7 @@ app.delete('/api/savings/user/:user', async (req, res) => {
 });
 
 // ===============================
-// ↩️ Pending Returns Routes (NEW)
+// ↩️ Pending Returns Routes
 // ===============================
 app.get('/api/returns/:user', async (req, res) => {
     try {
@@ -351,13 +387,9 @@ app.delete('/api/returns/user/:user', async (req, res) => {
     }
 });
 
-// server.js: Add these after existing API routes (e.g., after /api/payables routes)
-
 // ===============================
 // 📝 Notes Routes
 // ===============================
-
-// POST /api/notes (Create a new note)
 app.post('/api/notes', async (req, res) => {
     try {
         const { user, title, content } = req.body;
@@ -372,7 +404,6 @@ app.post('/api/notes', async (req, res) => {
     }
 });
 
-// GET /api/notes/user/:user (Fetch all notes for a user)
 app.get('/api/notes/user/:user', async (req, res) => {
     try {
         const notes = await Note.find({ user: req.params.user }).sort({ created: -1 });
@@ -382,7 +413,6 @@ app.get('/api/notes/user/:user', async (req, res) => {
     }
 });
 
-// DELETE /api/notes/:id (Delete a note by ID)
 app.delete('/api/notes/:id', async (req, res) => {
     try {
         const result = await Note.deleteOne({ _id: req.params.id });
@@ -395,7 +425,6 @@ app.delete('/api/notes/:id', async (req, res) => {
     }
 });
 
-// DELETE /api/notes/user/:user (Clear all notes for a user on full reset)
 app.delete('/api/notes/user/:user', async (req, res) => {
     try {
         await Note.deleteMany({ user: req.params.user });
@@ -406,12 +435,12 @@ app.delete('/api/notes/user/:user', async (req, res) => {
 });
 
 // ===============================
-// 💳 Payables Routes (NEW)
+// 💳 Payables Routes
 // ===============================
 app.get('/api/payables/:user', async (req, res) => {
     try {
         const payables = await Payable.find({ user: req.params.user }).sort({
-            date: -1, // Sort by due date
+            date: -1,
         });
         res.json(payables);
     } catch (err) {
@@ -468,7 +497,7 @@ app.delete('/api/payables/user/:user', async (req, res) => {
 });
 
 // ===============================
-// ✉️ Contact Form Route (NEW)
+// ✉️ Contact Form Route
 // ===============================
 app.post('/api/contact', async (req, res) => {
     try {
@@ -489,7 +518,6 @@ app.post('/api/contact', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-// --- END NEW ---
 
 
 // ===============================
@@ -568,10 +596,14 @@ app.post('/api/meta', async (req, res) => {
 app.post('/api/meta/reset', async (req, res) => {
   try {
     const { user } = req.body;
-    // --- UPDATE: Also delete PendingReturns and Payables on reset ---
+    
+    // Reset all transaction data, but keep account existence
+    await Expense.deleteMany({ user: user });
+    await Income.deleteMany({ user: user });
+    await Saving.deleteMany({ user: user });
     await PendingReturn.deleteMany({ user: user });
-    await Payable.deleteMany({ user: user }); // --- NEW ---
-    // --- END UPDATE ---
+    await Payable.deleteMany({ user: user });
+    await Note.deleteMany({ user: user });
     
     let meta = await Meta.findOne({ user });
     if (!meta) {

@@ -1336,3 +1336,143 @@ body.light-mode ::-webkit-scrollbar-track {
     border-radius: 4px;
     font-weight: 600;
 }
+/* --- NEW: Styles for Settings Popout Menu (Q6) --- */
+        .settings-container {
+            position: relative;
+            padding: -4px;
+        }
+
+        #settingsBtn {
+            width: 100%;
+            text-align: left;
+            justify-content: flex-start;
+            position: relative;
+            padding: -4px;
+        }
+
+        /* CHANGED: selector from .settings-popout to #settings-popout */
+        #settings-popout {
+            display: none;
+            /* Correctly hidden by default */
+            position: absolute;
+            bottom: 0;
+            right: 105%;
+            width: 190px;
+            background-color: var(--card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px;
+            gap: 10px;
+            z-index: 30;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            flex-direction: column;
+            /* Removed duplicate display: flex */
+        }
+
+        #settings-popout .btn {
+            width: 100%;
+            text-align: left;
+            justify-content: flex-start;
+        }
+
+        /* This class will be toggled by JS to show the menu */
+        #settings-popout.active {
+            display: flex;
+        }
+
+        /* --- Adjustments for hamburger menu --- */
+        @media (max-width: 1100px) {
+            .settings-container {
+                position: relative;
+                margin-top: 10px;
+                border-top: 1px solid var(--glass-border);
+                padding-top: 10px;
+            }
+
+            /* CHANGED: selector to #settings-popout */
+            #settings-popout {
+                position: static;
+                display: none;
+                /* Ensures hidden in mobile too */
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                margin-top: 10px;
+                width: 100%;
+                right: auto;
+                bottom: auto;
+            }
+
+            #settingsBtn::after {
+                content: ' \25BC';
+                /* Down arrow */
+                font-size: 10px;
+                position: absolute;
+                right: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            #settingsBtn.active::after {
+                content: ' \25B2';
+                /* Up arrow */
+            }
+
+            /* Popout is shown when button is active */
+            #settingsBtn.active+#settings-popout {
+                display: flex;
+                
+            }
+        }
+
+        /* =========================================
+   GLOW EFFECTS (Add to bottom of CSS)
+   ========================================= */
+
+/* 1. General Glow for Main Cards, Charts, and Modals */
+.card, 
+.chart-card, 
+.login-box, 
+.reset-box, 
+.tx-modal-content,
+#calculator {
+    /* A subtle green/teal glow (using your accent color RGB) + deep shadow */
+    box-shadow: 0 0 15px rgba(110, 231, 183, 0.15), 
+                0 10px 30px rgba(0, 0, 0, 0.5);
+    /* A faint border to enhance the glass effect */
+    border: 1px solid rgba(110, 231, 183, 0.2);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+/* 2. Interactive Cards (Transactions, Savings, Notes) */
+.month-card {
+    /* Slightly softer glow for grid items */
+    box-shadow: 0 0 10px rgba(110, 231, 183, 0.1), 
+                0 5px 15px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(110, 231, 183, 0.15);
+}
+
+/* 3. Hover Effect: Make them glow brighter when hovered */
+.month-card:hover {
+    transform: translateY(-5px);
+    /* Stronger, brighter glow on hover */
+    box-shadow: 0 0 25px rgba(110, 231, 183, 0.4), 
+                0 15px 35px rgba(0, 0, 0, 0.6);
+    border-color: var(--accent);
+}
+
+/* 4. Adjustments for Light Mode */
+/* Glows often look bad on white backgrounds, so we switch to a "Soft Lift" shadow */
+body.light-mode .card,
+body.light-mode .chart-card,
+body.light-mode .month-card,
+body.light-mode .login-box,
+body.light-mode .tx-modal-content {
+    box-shadow: 0 10px 40px rgba(148, 163, 184, 0.3); /* Soft blue-grey shadow */
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .month-card:hover {
+    box-shadow: 0 15px 45px rgba(148, 163, 184, 0.5);
+    border-color: var(--accent);
+}

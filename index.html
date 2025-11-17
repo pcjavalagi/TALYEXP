@@ -1010,51 +1010,75 @@
         }
 
         // --- Data Persistence (Backend) ---
+        //
+        // 🔥 ===================================================================
+        // 🔥  THIS IS THE PRIMARY BUG FIX
+        // 🔥  The old function fetched income and meta but never processed them.
+        // 🔥  This new function correctly parses all data and populates
+        // 🔥  the global state (monthlyIncomes, meta) on login/refresh.
+        // 🔥 ===================================================================
+        //
         async function loadDataAndRender() {
             const user = sessionStorage.getItem(SESSION_KEY);
             if (!user) return;
 
             try {
+                // 1. Fetch all responses in parallel
                 const [
                     expensesRes, incomeRes, metaRes,
                     savingsRes, returnsRes, payablesRes, notesRes
                 ] = await Promise.all([
                     fetch(`/api/expenses/${user}`),
-                    fetch(`/api/income/${user}`),
-                    fetch(`/api/meta/${user}`),
+                    fetch(`/api/income/${user}`),       // Fetches the array of income objects
+                    fetch(`/api/meta/${user}`),         // Fetches the single meta object
                     fetch(`/api/savings/${user}`),
                     fetch(`/api/returns/${user}`),
                     fetch(`/api/payables/${user}`),
                     fetch(`/api/notes/user/${user}`)
                 ]);
 
+                // 2. Check if all fetches were successful
                 if (
                     !expensesRes.ok || !incomeRes.ok || !metaRes.ok ||
                     !savingsRes.ok || !returnsRes.ok || !payablesRes.ok || !notesRes.ok
                 ) {
-                    throw new Error("Failed to fetch user data");
+                    throw new Error("Failed to fetch one or more user data resources");
                 }
 
-                // Load data
-                expenses = await expensesRes.json();
-                savings = await savingsRes.json();
-                returns = await returnsRes.json();
-                payables = await payablesRes.json();
-                notes = await notesRes.json();
+                // 3. Parse all data from the responses
+                const expensesData = await expensesRes.json();
+                const incomeData = await incomeRes.json();     // This is an ARRAY: [{monthKey, income}, ...]
+                const metaData = await metaRes.json();         // This is an OBJECT: {startTs, ...}
+                const savingsData = await savingsRes.json();
+                const returnsData = await returnsRes.json();
+                const payablesData = await payablesRes.json();
+                const notesData = await notesRes.json();
 
-                // ✅ FIX 1 — Show Username Again
+                // 4. 🔥 BUG FIX: Populate global state *from* the parsed data
+                expenses = expensesData;
+                savings = savingsData;
+                returns = returnsData;
+                payables = payablesData;
+                notes = notesData;
+                meta = metaData || { startTs: Date.now() }; // Assign to global meta object
+
+                // 5. 🔥 BUG FIX: Process the incomeData ARRAY into the monthlyIncomes MAP
+                monthlyIncomes = incomeData.reduce((acc, curr) => {
+                    acc[curr.monthKey] = curr.income;
+                    return acc;
+                }, {}); // This correctly populates the { "YYYY-MM": amount } map
+
+                // 6. Now that all data is loaded, set the welcome message
                 const capitalizedUser = user.charAt(0).toUpperCase() + user.slice(1);
                 userGreetingEl.innerHTML = `
-            Welcome, 
-            <strong style="color: var(--accent);">
-                ${escapeHtml(capitalizedUser)}
-            </strong>
-        `;
+                    Welcome, 
+                    <strong style="color: var(--accent);">
+                        ${escapeHtml(capitalizedUser)}
+                    </strong>
+                `;
 
-                // Render Home widgets
+                // 7. And *now* render all components that depend on this global state
                 renderHome();
-
-                // ✅ FIX 2 — Always fully refresh sections
                 renderTransactions();
                 renderSavings();
                 renderReturns();
@@ -1062,13 +1086,16 @@
                 renderNotes();
 
             } catch (err) {
-                console.error(err);
+                console.error("Error loading data:", err);
                 alert("Could not load your data. Please try again.");
                 handleLogout();
             }
         }
-
-
+        //
+        // 🔥 ===================================================================
+        // 🔥  END OF BUG FIX
+        // 🔥 ===================================================================
+        //
 
 
         // --- Rendering ---
@@ -1122,7 +1149,9 @@
             const selectedDateStr = dateEl.value;
             if (!selectedDateStr) return;
             const monthKey = selectedDateStr.slice(0, 7);
-            const incomeForMonth = monthlyIncomes[monthKey] || 0;
+            
+            // This now works because monthlyIncomes is populated by loadDataAndRender()
+            const incomeForMonth = monthlyIncomes[monthKey] || 0; 
             monthlyIncomeEl.value = incomeForMonth > 0 ? incomeForMonth : '';
 
             // --- UPDATE: 'PG Rent' is now included in monthTotal because EXCLUDE_CATEGORY is "" ---
@@ -1765,7 +1794,9 @@
             const data = getFilteredExpenses(); // This now includes 'PG Rent'
             const spent = data.reduce((s, x) => s + Number(x.amount), 0);
             const monthKey = chartPeriod.value;
-            const incomeForSelectedMonth = monthlyIncomes[monthKey] || 0;
+            
+            // This now works because monthlyIncomes is populated
+            const incomeForSelectedMonth = monthlyIncomes[monthKey] || 0; 
             const budget = incomeForSelectedMonth;
 
             // --- UPDATE: Use getChartBaseOptions() ---
@@ -1824,7 +1855,7 @@
                 const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
                 labels.push(d.toLocaleString('default', { month: 'short' }));
 
-                // Get Income
+                // Get Income (This now works!)
                 incomePoints.push(monthlyIncomes[key] || 0);
 
                 // Get Expenses (This now includes 'PG Rent')
@@ -1953,7 +1984,9 @@
             }
 
             const totalCurrentSpent = currentMonthExpenses.reduce((s, e) => s + Number(e.amount), 0);
-            const currentIncome = monthlyIncomes[currentMonthKey] || 0;
+            
+            // This now works because monthlyIncomes is populated
+            const currentIncome = monthlyIncomes[currentMonthKey] || 0; 
             if (currentIncome > 0) {
                 const percentSpent = Math.round(((totalCurrentSpent + totalSaved) / currentIncome) * 100);
                 if (percentSpent > 100) {
@@ -2049,6 +2082,7 @@
             doc.setFont('helvetica', 'normal'); // Reset
 
             // Conditional layout for income vs. top category
+            // This now works because monthlyIncomes is populated
             if (monthKey && monthlyIncomes[monthKey]) {
                 // Monthly report layout
                 const selectedIncome = monthlyIncomes[monthKey];
@@ -2764,7 +2798,7 @@
                         body: JSON.stringify({ user: sessionStorage.getItem(SESSION_KEY), monthKey, income: incomeValue })
                     });
                     if (!res.ok) throw new Error('Failed to save income');
-                    monthlyIncomes[monthKey] = incomeValue;
+                    monthlyIncomes[monthKey] = incomeValue; // Update local state
                     renderIncomeForSelectedMonth();
                     renderAllCharts();
                     alert(`Income saved for ${new Date(monthKey + '-02').toLocaleString('default', { month: 'long', year: 'numeric' })}.`);
@@ -2801,7 +2835,7 @@
                     splashScreen.style.display = 'none';
                     if (isLoggedIn()) {
                         appContainer.style.display = 'flex';
-                        await loadDataAndRender();
+                        await loadDataAndRender(); // This now correctly populates all data
                     } else {
                         loginScreen.style.display = 'flex';
                     }

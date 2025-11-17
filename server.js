@@ -96,6 +96,16 @@ const metaSchema = new mongoose.Schema({
   lastExport: String,
 });
 
+const recurringItemSchema = new mongoose.Schema({
+    user: String,
+    title: String,
+    amount: Number,
+    category: String,
+    type: String, // 'Expense' or 'Saving'
+    dayOfMonth: Number, // 1-31
+    created: { type: Date, default: Date.now },
+});
+
 // Define Models
 const User = mongoose.model('User', userSchema);
 const Expense = mongoose.model('Expense', expenseSchema);
@@ -104,6 +114,7 @@ const Note = mongoose.model('Note', noteSchema);
 const PendingReturn = mongoose.model('PendingReturn', pendingReturnSchema);
 const Payable = mongoose.model('Payable', payableSchema);
 const Contact = mongoose.model('Contact', contactSchema);
+const RecurringItem = mongoose.model('RecurringItem', recurringItemSchema);
 const Income = mongoose.model('Income', incomeSchema);
 const Meta = mongoose.model('Meta', metaSchema);
 
@@ -191,7 +202,8 @@ app.post('/api/account/delete', async (req, res) => {
         PendingReturn.deleteMany({ user: lower }), // Delete Returns
         Payable.deleteMany({ user: lower }), // Delete Payables
         Note.deleteMany({ user: lower }),    // Delete Notes
-        Contact.deleteMany({ user: lower })  // Delete Contact Msgs
+        Contact.deleteMany({ user: lower }),  // Delete Contact Msgs
+        RecurringItem.deleteMany({ user: lower }) // Delete Recurring Items
     ]);
 
     res.json({ message: 'Account deleted successfully' });
@@ -199,6 +211,48 @@ app.post('/api/account/delete', async (req, res) => {
     console.error("Delete Account Error:", err);
     res.status(500).json({ error: err.message });
   }
+});
+
+
+// ===============================
+// 🔁 Recurring Item Routes
+// ===============================
+app.get('/api/recurring/:user', async (req, res) => {
+    try {
+        const items = await RecurringItem.find({ user: req.params.user }).sort({
+            created: -1,
+        });
+        res.json(items);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/recurring', async (req, res) => {
+    try {
+        const { user, title, amount, category, type, dayOfMonth } = req.body;
+        const newItem = new RecurringItem({
+            user,
+            title,
+            amount,
+            category,
+            type,
+            dayOfMonth,
+        });
+        await newItem.save();
+        res.json({ message: 'Recurring item added successfully', id: newItem._id });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/recurring/:id', async (req, res) => {
+    try {
+        await RecurringItem.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Recurring item deleted' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 
@@ -610,6 +664,8 @@ app.post('/api/meta', async (req, res) => {
   }
 });
 
+
+
 app.post('/api/meta/reset', async (req, res) => {
   try {
     const { user } = req.body;
@@ -621,6 +677,7 @@ app.post('/api/meta/reset', async (req, res) => {
     await PendingReturn.deleteMany({ user: user });
     await Payable.deleteMany({ user: user });
     await Note.deleteMany({ user: user });
+    await RecurringItem.deleteMany({ user: user });
     
     let meta = await Meta.findOne({ user });
     if (!meta) {

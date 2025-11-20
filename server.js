@@ -106,6 +106,27 @@ const recurringItemSchema = new mongoose.Schema({
     created: { type: Date, default: Date.now },
 });
 
+// --- NEW: Schema for Future Planner Saved Cards ---
+const futurePlanSchema = new mongoose.Schema({
+    user: String,
+    inputs: {
+        fv: Number, // Future Value Goal
+        t: Number,  // Time (Years)
+        r: Number,  // Rate
+        n: Number   // Frequency
+    },
+    results: {
+        monthlyContrib: Number,
+        totalInterest: Number,
+        totalPrincipal: Number,
+        incomePercent: Number,
+        // We store the full schedule array so we can redraw charts/tables
+        schedule: Array 
+    },
+    graph: Object, // Store graph data structure
+    created: { type: Date, default: Date.now }
+});
+
 // Define Models
 const User = mongoose.model('User', userSchema);
 const Expense = mongoose.model('Expense', expenseSchema);
@@ -117,6 +138,7 @@ const Contact = mongoose.model('Contact', contactSchema);
 const RecurringItem = mongoose.model('RecurringItem', recurringItemSchema);
 const Income = mongoose.model('Income', incomeSchema);
 const Meta = mongoose.model('Meta', metaSchema);
+const FuturePlan = mongoose.model('FuturePlan', futurePlanSchema); // NEW Model
 
 // ===============================
 // 👤 Auth & Account Routes
@@ -178,7 +200,7 @@ app.post('/api/reset-password', async (req, res) => {
     }
 });
 
-// --- NEW: Delete Account Endpoint (Point 2) ---
+// --- Delete Account Endpoint ---
 app.post('/api/account/delete', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -192,18 +214,19 @@ app.post('/api/account/delete', async (req, res) => {
     const ok = await bcrypt.compare(password, user.passwordHash || '');
     if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
 
-    // 3. Delete Data from All Collections
+    // 3. Delete Data from All Collections (Updated to include FuturePlans)
     await Promise.all([
-        User.deleteOne({ username: lower }), // Delete Auth
-        Meta.deleteOne({ user: lower }),     // Delete Meta
-        Expense.deleteMany({ user: lower }), // Delete Expenses
-        Income.deleteMany({ user: lower }),  // Delete Income
-        Saving.deleteMany({ user: lower }),  // Delete Savings
-        PendingReturn.deleteMany({ user: lower }), // Delete Returns
-        Payable.deleteMany({ user: lower }), // Delete Payables
-        Note.deleteMany({ user: lower }),    // Delete Notes
-        Contact.deleteMany({ user: lower }),  // Delete Contact Msgs
-        RecurringItem.deleteMany({ user: lower }) // Delete Recurring Items
+        User.deleteOne({ username: lower }), 
+        Meta.deleteOne({ user: lower }),     
+        Expense.deleteMany({ user: lower }), 
+        Income.deleteMany({ user: lower }),  
+        Saving.deleteMany({ user: lower }),  
+        PendingReturn.deleteMany({ user: lower }), 
+        Payable.deleteMany({ user: lower }), 
+        Note.deleteMany({ user: lower }),    
+        Contact.deleteMany({ user: lower }),  
+        RecurringItem.deleteMany({ user: lower }),
+        FuturePlan.deleteMany({ user: lower }) // NEW: Delete saved plans
     ]);
 
     res.json({ message: 'Account deleted successfully' });
@@ -213,6 +236,43 @@ app.post('/api/account/delete', async (req, res) => {
   }
 });
 
+
+// ===============================
+// 🚀 Future Planner Routes (NEW)
+// ===============================
+app.get('/api/futureplans/:user', async (req, res) => {
+    try {
+        const plans = await FuturePlan.find({ user: req.params.user }).sort({ created: -1 });
+        res.json(plans);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/futureplans', async (req, res) => {
+    try {
+        const { user, inputs, results, graph } = req.body;
+        const newPlan = new FuturePlan({
+            user,
+            inputs,
+            results,
+            graph
+        });
+        await newPlan.save();
+        res.json({ message: 'Plan saved successfully', id: newPlan._id });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/futureplans/:id', async (req, res) => {
+    try {
+        await FuturePlan.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Plan deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // ===============================
 // 🔁 Recurring Item Routes
@@ -302,28 +362,17 @@ app.put('/api/expenses/:id', async (req, res) => {
   }
 });
 
-// server.js (Apply this structure to DELETE routes for Expense, Saving, PendingReturn, and Payable)
-
 app.delete('/api/expenses/:id', async (req, res) => {
     try {
         const result = await Expense.deleteOne({ _id: req.params.id });
-        
         if (result.deletedCount === 0) {
             return res.status(404).json({ message: 'Expense not found' });
         }
-        
-        // Success: Return a clear, successful response
         res.json({ message: 'Expense deleted successfully' });
     } catch (err) {
-        // --- CRITICAL FIX: Explicitly handle invalid ID format (CastError) ---
         if (err.name === 'CastError') {
-            console.error("Mongoose CastError: Invalid ID format.", req.params.id); 
-            // Return a specific 400 Bad Request error to the client
             return res.status(400).json({ error: 'Invalid transaction ID format sent to server.' });
         }
-        // ---------------------------------------------------------------------
-
-        console.error("Expense Delete Error:", err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -678,6 +727,7 @@ app.post('/api/meta/reset', async (req, res) => {
     await Payable.deleteMany({ user: user });
     await Note.deleteMany({ user: user });
     await RecurringItem.deleteMany({ user: user });
+    await FuturePlan.deleteMany({ user: user }); // Reset Future Plans too
     
     let meta = await Meta.findOne({ user });
     if (!meta) {

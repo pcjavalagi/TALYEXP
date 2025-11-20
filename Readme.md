@@ -26,11 +26,13 @@ TALYEXP is a web application for tracking expenses, savings, loans (pending retu
 
 ## File Structure
 
-| File            | Purpose                                  |
-|-----------------|------------------------------------------|
-| `index.html`    | Main interface and logic                 |
-| `TALYEXP.css`   | App styling and themes                   |
-| `server.js`     | Backend server, DB models/routes         |
+| File                    | Purpose                                     |
+|-------------------------|---------------------------------------------|
+| `index.html`            | Main interface and logic                    |
+| `TALYEXP.css`           | App styling and themes                      |
+| `server.js`             | Backend server, DB models/routes            |
+| `fut_amount_calc.html`  | integrated for personal amount goal setting |   
+
 
 ## Installation & Setup
 

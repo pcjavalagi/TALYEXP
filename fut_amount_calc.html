@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TALYEXP - Future Planner</title>
+    <link rel="icon" type="image/png" href="spending.png" />
+
+    <link rel="stylesheet" href="TALYEXP.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* --- Custom Overrides for Planner specific layout using Talyexp Variables --- */
+
+        body {
+            display: block;
+            /* Override flex center from TALYEXP.css for scrolling content */
+            overflow-y: auto;
+            height: auto;
+            min-height: 100vh;
+        }
+
+        .planner-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding-bottom: 40px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* Chart Containers */
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+            width: 100%;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 15px;
+        }
+
+        /* Stats Grid */
+        .preview-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .preview-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Table Styling to match Talyexp */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            background: var(--input-bg);
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .schedule-table th {
+            /* CHANGE: Use a solid background variable instead of rgba(...) to remove glass effect */
+            background-color: var(--card);
+            color: var(--accent);
+            padding: 12px;
+            text-align: right;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-weight: 600;
+            /* ADD: A subtle border to separate the header from the scrolling data */
+            border-bottom: 2px solid var(--glass-border);
+            /* OPTIONAL: Box shadow for better depth */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .schedule-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--glass-border);
+            text-align: right;
+        }
+
+        .schedule-table th:first-child,
+        .schedule-table td:first-child {
+            text-align: left;
+        }
+
+        .row-year-summary {
+            background-color: rgba(255, 255, 255, 0.03);
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        /* Saved Cards */
+        .saved-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .saved-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-info h4 {
+            margin: 0 0 5px 0;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .card-info p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Toggle Buttons */
+        .chart-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn-toggle {
+            padding: 6px 16px;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-toggle.active {
+            background: var(--accent);
+            color: #042028;
+            /* Dark text for contrast */
+            border-color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* Hidden Canvas */
+        #pdfHiddenCanvas {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="planner-container app-wrap" style="display: block; height: auto; max-width: 1000px;">
+        <header class="card" style="margin-top: 20px;">
+            <div class="brand">
+                <div class="logo" style="background: var(--glass);">
+                    <i class="fa-solid fa-chart-line" style="color: var(--accent); font-size: 20px;"></i>
+                </div>
+                <div>
+                    <h1>Financial Planner</h1>
+                    <div class="subtitle">Calculate your path to wealth</div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <button id="themeToggleBtn" class="btn ghost small" title="Toggle Theme">
+                    ☀️ / 🌙
+                </button>
+                <a href="index.html" style="text-decoration: none;">
+                    <button class="btn small ghost">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+                    </button>
+                </a>
+            </div>
+        </header>
+
+        <main style="overflow: visible;">
+
+            <div class="card" id="formSection">
+                <h3
+                    style="margin-top:0; color: var(--accent); border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-bottom: 20px;">
+                    Plan Details
+                </h3>
+
+                <form id="calcForm">
+                    <div class="input-grid">
+                        <div class="form-group">
+                            <label>Target Goal Amount (₹)</label>
+                            <input type="number" class="input" id="targetGoal" placeholder="e.g., 1000000" required
+                                min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Initial Savings (₹)</label>
+                            <input type="number" class="input" id="initialSavings" placeholder="e.g., 50000" value="0"
+                                min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Annual Income (₹)</label>
+                            <input type="number" class="input" id="annualIncome" placeholder="e.g., 800000" required
+                                min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Time Period (Years)</label>
+                            <input type="number" class="input" id="years" value="5" required min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Expected Return (%)</label>
+                            <input type="number" class="input" id="rate" value="10.0" step="0.1" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Contribution Frequency</label>
+                            <select id="frequency" class="input" style="color: var(--text-primary);">
+                                <option value="12" selected>Monthly</option>
+                                <option value="4">Quarterly</option>
+                                <option value="1">Annually</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                        <button type="submit" class="btn" style="min-width: 150px;">Calculate Plan</button>
+                        <button type="reset" class="btn ghost">Reset</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="previewSection" class="card hidden fade-in">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;">
+                    <h2 style="margin:0; font-size: 18px;">Report Preview</h2>
+                    <span class="subtitle">Please review before saving</span>
+                </div>
+
+                <div id="previewContent">
+                </div>
+
+                <div
+                    style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 15px; border-top: 1px solid var(--glass-border); padding-top: 20px;">
+                    <button id="rejectBtn" class="btn ghost danger">Reject</button>
+                    <button id="confirmBtn" class="btn">Save Plan</button>
+                </div>
+            </div>
+
+            <div id="cardsSection" class="hidden fade-in" style="margin-top: 30px;">
+                <h3 style="margin-bottom: 20px; color: var(--text-muted);">Saved Plans</h3>
+                <div id="cardsList">
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="card" style="margin-top: 20px; text-align: center;">
+            <p class="subtitle">TALYEXP Financial Planner Extension &copy; 2025</p>
+        </footer>
+    </div>
+
+    <div id="viewModal" class="tx-modal" style="display: none;">
+        <div class="tx-modal-content" style="max-width: 900px;">
+            <div class="tx-modal-header">
+                <h2 id="tx-modal-title">Plan Details</h2>
+                <button class="close-modal-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalBody" class="tx-modal-body"></div>
+        </div>
+    </div>
+
+    <canvas id="pdfHiddenCanvas" width="800" height="400"></canvas>
+
+    <script>
+        // --- GLOBAL SESSION SETUP ---
+        const SESSION_KEY = 'talyexp_v1:session';
+        const currentUser = sessionStorage.getItem(SESSION_KEY);
+
+        // Redirect if not logged in (Optional security)
+        if (!currentUser) {
+            // Uncomment if you want strict protection
+            // window.location.href = 'index.html';
+        }
+
+        // --- THEME LOGIC (MATCHING TALYEXP) ---
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('talyexp_theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('talyexp_theme', isLight ? 'light' : 'dark');
+
+            // Re-render active charts to apply colors
+            if (currentCalculation) {
+                const isModalOpen = document.getElementById('viewModal').style.display === 'flex';
+                if (isModalOpen && currentModalData) {
+                    renderLineChart('modalLineChart', currentModalData.graph, currentGraphMode, 'modal');
+                    renderBarChart('modalBarChart', currentModalData.graph, 'modal');
+                } else {
+                    renderLineChart('mainScreenLineChart', currentCalculation.graph, currentGraphMode, 'main');
+                    renderBarChart('mainScreenBarChart', currentCalculation.graph, 'main');
+                }
+            }
+        }
+
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        initTheme();
+
+
+        // --- CALCULATION LOGIC ---
+        const CURRENCY = "₹";
+        let currentCalculation = null;
+        let savedPlans = [];
+
+        // Store charts
+        let mainCharts = { line: null, bar: null };
+        let modalCharts = { line: null, bar: null };
+        let activePdfChart = null;
+        let currentGraphMode = 'annual'; // 'annual' or 'monthly'
+
+        const money = (num) => CURRENCY + parseFloat(num).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        const moneyPdf = (num) => "Rs. " + parseFloat(num).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+        // Helper to get chart colors based on theme
+        function getChartColors() {
+            const isLight = document.body.classList.contains('light-mode');
+            return {
+                text: isLight ? '#0f172a' : '#e6eef6',
+                grid: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)',
+                accent: '#6ee7b7',
+                secondary: '#a78bfa',
+                bg: isLight ? '#ffffff' : '#0b1220'
+            };
+        }
+
+        function calculate() {
+            const fv = parseFloat(document.getElementById('targetGoal').value);
+            const p = parseFloat(document.getElementById('initialSavings').value) || 0;
+            const income = parseFloat(document.getElementById('annualIncome').value);
+            const t = parseInt(document.getElementById('years').value);
+            const r = parseFloat(document.getElementById('rate').value);
+            const n = parseInt(document.getElementById('frequency').value);
+
+            const r_dec = r / 100;
+            const periodRate = r_dec / n;
+            const totalPeriods = t * n;
+
+            const fv_p = p * Math.pow((1 + periodRate), totalPeriods);
+            const remaining_fv = fv - fv_p;
+
+            let pmt = 0;
+            if (remaining_fv > 0) {
+                if (periodRate === 0) pmt = remaining_fv / totalPeriods;
+                else pmt = remaining_fv / ((Math.pow(1 + periodRate, totalPeriods) - 1) / periodRate);
+            }
+
+            const monthlyContrib = (pmt * n) / 12;
+            const annualContrib = monthlyContrib * 12;
+            const incomePercent = (annualContrib / income) * 100;
+
+            // Data structures
+            let schedule = [];
+            let balance = p;
+            let totalInvested = p;
+            let totalInterest = 0;
+
+            let annualLabels = ['Year 0'];
+            let annualInvested = [p];
+            let annualInterestOnly = [0];
+            let annualBalance = [p];
+
+            let monthlyLabels = ['Start'];
+            let monthlyInvested = [p];
+            let monthlyBalance = [p];
+
+            let globalPeriodCounter = 0;
+
+            for (let year = 1; year <= t; year++) {
+                let yStart = balance;
+                let yInterest = 0;
+                let yContrib = 0;
+                let periods = [];
+
+                for (let pd = 1; pd <= n; pd++) {
+                    globalPeriodCounter++;
+                    const interest = balance * periodRate;
+                    let contrib = pmt;
+
+                    if (balance + interest + contrib > fv) {
+                        contrib = Math.max(0, fv - (balance + interest));
+                    }
+
+                    balance += interest + contrib;
+
+                    yInterest += interest;
+                    yContrib += contrib;
+                    totalInterest += interest;
+                    totalInvested += contrib;
+
+                    periods.push({
+                        label: n === 12 ? `Month ${(year - 1) * 12 + pd}` : `Period ${globalPeriodCounter}`,
+                        start: balance - contrib - interest,
+                        contrib: contrib,
+                        interest: interest,
+                        end: balance
+                    });
+
+                    monthlyLabels.push(n === 12 ? `M${(year - 1) * 12 + pd}` : `P${globalPeriodCounter}`);
+                    monthlyInvested.push(totalInvested);
+                    monthlyBalance.push(balance);
+
+                    if (balance >= fv) break;
+                }
+
+                annualLabels.push(`Year ${year}`);
+                annualInvested.push(totalInvested);
+                annualInterestOnly.push(balance - totalInvested);
+                annualBalance.push(balance);
+
+                schedule.push({
+                    year: year,
+                    periods: periods,
+                    summary: { start: yStart, contrib: yContrib, interest: yInterest, end: balance }
+                });
+
+                if (balance >= fv) break;
+            }
+
+            return {
+                // id: Date.now(), // --- ID is now handled by MongoDB
+                inputs: { fv, t, r, n },
+                results: { monthlyContrib, totalInterest, totalPrincipal: totalInvested, incomePercent, schedule },
+                graph: {
+                    annual: {
+                        labels: annualLabels,
+                        invested: annualInvested,
+                        interest: annualInterestOnly,
+                        balance: annualBalance
+                    },
+                    monthly: {
+                        labels: monthlyLabels,
+                        invested: monthlyInvested,
+                        balance: monthlyBalance
+                    }
+                }
+            };
+        }
+
+        // --- CHART GENERATORS ---
+        function renderLineChart(canvasId, graphDataSets, mode, chartStoreKey) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const data = (mode === 'monthly') ? graphDataSets.monthly : graphDataSets.annual;
+            const store = (chartStoreKey === 'modal') ? modalCharts : mainCharts;
+            const colors = getChartColors();
+
+            if (store.line) store.line.destroy();
+
+            // Create Gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(110, 231, 183, 0.4)'); // Accent
+            gradient.addColorStop(1, 'rgba(110, 231, 183, 0.0)');
+
+            store.line = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: 'Total Value',
+                            data: data.balance,
+                            backgroundColor: gradient,
+                            borderColor: colors.accent,
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: (mode === 'monthly') ? 0 : 3
+                        },
+                        {
+                            label: 'Invested',
+                            data: data.invested,
+                            backgroundColor: 'transparent',
+                            borderColor: colors.secondary,
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.3,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { labels: { color: colors.text } },
+                        title: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: colors.text, maxTicksLimit: 10 },
+                            grid: { color: colors.grid }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: colors.text,
+                                callback: function (value) { return CURRENCY + (value / 1000).toFixed(0) + 'k'; }
+                            },
+                            grid: { color: colors.grid }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderBarChart(canvasId, graphDataSets, chartStoreKey) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const data = graphDataSets.annual;
+            const labels = data.labels.slice(1);
+            const investedData = data.invested.slice(1);
+            const interestData = data.interest.slice(1);
+            const store = (chartStoreKey === 'modal') ? modalCharts : mainCharts;
+            const colors = getChartColors();
+
+            if (store.bar) store.bar.destroy();
+
+            store.bar = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Interest Earned',
+                            data: interestData,
+                            backgroundColor: colors.accent,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Principal Invested',
+                            data: investedData,
+                            backgroundColor: colors.secondary,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: colors.text } }
+                    },
+                    scales: {
+                        x: { stacked: true, ticks: { color: colors.text }, grid: { color: colors.grid } },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: {
+                                color: colors.text,
+                                callback: function (value) { return CURRENCY + (value / 1000).toFixed(0) + 'k'; }
+                            },
+                            grid: { color: colors.grid }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- HTML HELPERS ---
+        function getScheduleRowsHTML(schedule) {
+            let rows = '';
+            schedule.forEach(yr => {
+                yr.periods.forEach(pd => {
+                    rows += `
+                        <tr class="row-month">
+                            <td>${pd.label}</td>
+                            <td>${money(pd.start)}</td>
+                            <td>${money(pd.contrib)}</td>
+                            <td style="color: var(--accent);">${money(pd.interest)}</td>
+                            <td>${money(pd.end)}</td>
+                        </tr>
+                    `;
+                });
+                rows += `
+                    <tr class="row-year-summary">
+                        <td>YEAR ${yr.year} SUMMARY</td>
+                        <td>${money(yr.summary.start)}</td>
+                        <td>${money(yr.summary.contrib)}</td>
+                        <td>${money(yr.summary.interest)}</td>
+                        <td>${money(yr.summary.end)}</td>
+                    </tr>
+                `;
+            });
+            return rows;
+        }
+
+        function getPreviewHTML(data, lineChartId, barChartId) {
+            const { results } = data;
+            return `
+                <div class="preview-stats">
+                    <div class="stat">
+                        <h3>Required Monthly</h3>
+                        <p style="color: var(--accent); font-size: 18px;">${money(results.monthlyContrib)}</p>
+                    </div>
+                    <div class="stat">
+                        <h3>Total Interest</h3>
+                        <p style="color: #fbbf24; font-size: 18px;">+${money(results.totalInterest)}</p>
+                    </div>
+                    <div class="stat">
+                        <h3>Income Impact</h3>
+                        <p style="font-size: 18px;">${results.incomePercent.toFixed(1)}%</p>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--text-primary); margin-bottom:10px;">Growth Projection (Line)</h3>
+                
+                <div class="chart-controls">
+                    <button class="btn-toggle active" onclick="toggleGraph('annual', '${lineChartId}')">Yearly Overview</button>
+                    <button class="btn-toggle" onclick="toggleGraph('monthly', '${lineChartId}')">Monthly (Live)</button>
+                </div>
+
+                <div class="chart-wrapper">
+                    <canvas id="${lineChartId}"></canvas>
+                </div>
+
+                <h3 style="color: var(--text-primary); margin-bottom:10px;">Portfolio Composition (Bar)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="${barChartId}"></canvas>
+                </div>
+
+                <h3 style="color: var(--text-primary); margin-bottom: 15px;">Detailed Schedule</h3>
+                <div class="table-wrapper">
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Start Balance</th>
+                                <th>Contribution</th>
+                                <th>Interest</th>
+                                <th>End Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${getScheduleRowsHTML(results.schedule)}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        window.toggleGraph = (mode, canvasId) => {
+            const buttons = document.querySelectorAll('.btn-toggle');
+            buttons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(mode === 'annual' ? 'yearly' : 'monthly')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            currentGraphMode = mode;
+            const isModal = canvasId.includes('modal');
+            const dataToUse = isModal ? currentModalData : currentCalculation;
+            const storeKey = isModal ? 'modal' : 'main';
+            if (dataToUse) renderLineChart(canvasId, dataToUse.graph, mode, storeKey);
+        };
+
+        // --- PDF GENERATION ---
+        window.downloadPDF = (idx) => {
+            const data = savedPlans[idx];
+            const { inputs, results, graph } = data;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // PDF Generation needs specific styling that might differ from Dark Mode
+            // So we hardcode white-background colors for the hidden canvas
+            const hiddenCtx = document.getElementById('pdfHiddenCanvas').getContext('2d');
+            if (activePdfChart) activePdfChart.destroy();
+
+            activePdfChart = new Chart(hiddenCtx, {
+                type: 'line',
+                data: {
+                    labels: graph.monthly.labels,
+                    datasets: [{
+                        label: 'Total Value', data: graph.monthly.balance,
+                        borderColor: '#1e3a8a', backgroundColor: 'rgba(30, 58, 138, 0.2)',
+                        fill: true, borderWidth: 2, tension: 0.1, pointRadius: 0
+                    }]
+                },
+                options: { animation: false, responsive: false, scales: { y: { beginAtZero: true } } }
+            });
+
+            const chartImgData = document.getElementById('pdfHiddenCanvas').toDataURL("image/png", 1.0);
+
+            doc.setFontSize(18); doc.setTextColor(30, 58, 138);
+            doc.text("Financial Plan - Talyexp", 14, 20);
+            doc.setFontSize(10); doc.setTextColor(100);
+            doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 26);
+
+            doc.setFillColor(240, 245, 250); doc.rect(14, 32, 182, 25, 'FD');
+            doc.setFontSize(9); doc.setTextColor(80);
+            doc.text("TARGET GOAL", 20, 40); doc.text("MONTHLY SAVINGS", 80, 40); doc.text("TOTAL INTEREST", 140, 40);
+
+            doc.setFontSize(12); doc.setFont("helvetica", "bold");
+            doc.setTextColor(30, 58, 138); doc.text(moneyPdf(inputs.fv), 20, 48);
+            doc.text(moneyPdf(results.monthlyContrib), 80, 48);
+            doc.setTextColor(16, 185, 129); doc.text("+" + moneyPdf(results.totalInterest), 140, 48);
+
+            doc.addImage(chartImgData, 'PNG', 15, 65, 180, 90);
+
+            let tableBody = [];
+            results.schedule.forEach(yr => {
+                yr.periods.forEach(pd => {
+                    tableBody.push([pd.label, moneyPdf(pd.start), moneyPdf(pd.contrib), moneyPdf(pd.interest), moneyPdf(pd.end)]);
+                });
+                tableBody.push([{ content: `YEAR ${yr.year}`, colSpan: 1, styles: { fontStyle: 'bold' } }, moneyPdf(yr.summary.start), moneyPdf(yr.summary.contrib), moneyPdf(yr.summary.interest), moneyPdf(yr.summary.end)]);
+            });
+
+            doc.autoTable({
+                startY: 165,
+                head: [['Period', 'Start', 'Contrib', 'Interest', 'End']],
+                body: tableBody,
+                theme: 'grid',
+                styles: { fontSize: 8, cellPadding: 2 },
+                headStyles: { fillColor: [30, 58, 138], textColor: 255 },
+                didParseCell: function (data) {
+                    if (data.row.raw[0] && typeof data.row.raw[0] === 'object') {
+                        data.cell.styles.fillColor = [230, 230, 230];
+                    }
+                }
+            });
+
+            doc.save(`Talyexp_Plan_${Date.now()}.pdf`);
+        };
+
+        // --- DOM EVENTS & API INTEGRATION ---
+        let currentModalData = null;
+
+        // 1. LOAD PLANS ON INIT
+        async function loadSavedPlans() {
+            if (!currentUser) return;
+            try {
+                const res = await fetch(`/api/futureplans/${currentUser}`);
+                if (!res.ok) throw new Error("Failed to fetch plans");
+                savedPlans = await res.json();
+                renderCards();
+            } catch (err) {
+                console.error("Error loading plans:", err);
+            }
+        }
+        // Load immediately
+        loadSavedPlans();
+
+        // 2. CALCULATE (Local Preview)
+        document.getElementById('calcForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            currentCalculation = calculate();
+            document.getElementById('previewContent').innerHTML = getPreviewHTML(currentCalculation, 'mainScreenLineChart', 'mainScreenBarChart');
+            const previewSec = document.getElementById('previewSection');
+            previewSec.classList.remove('hidden');
+            currentGraphMode = 'annual';
+            renderLineChart('mainScreenLineChart', currentCalculation.graph, 'annual', 'main');
+            renderBarChart('mainScreenBarChart', currentCalculation.graph, 'main');
+            previewSec.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // 3. REJECT (Hide Preview)
+        document.getElementById('rejectBtn').addEventListener('click', () => {
+            document.getElementById('previewSection').classList.add('hidden');
+            document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // 4. CONFIRM & SAVE (POST to API)
+        document.getElementById('confirmBtn').addEventListener('click', async () => {
+            if (!currentUser) {
+                alert("Please log in via the main dashboard to save plans.");
+                return;
+            }
+
+            // Add simple loading state
+            const btn = document.getElementById('confirmBtn');
+            const originalText = btn.textContent;
+            btn.textContent = "Saving...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/futureplans', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user: currentUser,
+                        inputs: currentCalculation.inputs,
+                        results: currentCalculation.results,
+                        graph: currentCalculation.graph
+                    })
+                });
+
+                if (!res.ok) throw new Error("Failed to save plan to server");
+
+                // Refresh list from server to get the real ID
+                await loadSavedPlans();
+
+                // UI Reset
+                document.getElementById('previewSection').classList.add('hidden');
+                document.getElementById('calcForm').reset();
+                document.getElementById('cardsSection').classList.remove('hidden');
+                document.getElementById('cardsSection').scrollIntoView({ behavior: 'smooth' });
+
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        function renderCards() {
+            const container = document.getElementById('cardsList');
+            container.innerHTML = '';
+
+            // Handle empty state
+            if (savedPlans.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:var(--text-muted)">No saved plans found.</p>';
+                document.getElementById('cardsSection').classList.remove('hidden'); // Show empty message
+                return;
+            }
+
+            savedPlans.forEach((plan, idx) => {
+                const div = document.createElement('div');
+                div.className = 'saved-card';
+                div.innerHTML = `
+                    <div class="card-info">
+                        <h4>Target: ${money(plan.inputs.fv)}</h4>
+                        <p>${plan.inputs.t} Years @ ${plan.inputs.r}% | <b style="color: var(--accent)">${money(plan.results.monthlyContrib)}</b>/mo</p>
+                    </div>
+                    <div style="display:flex; gap: 8px;">
+                        <button class="btn small ghost" onclick="viewPlan(${idx})" title="View"><i class="fa-solid fa-eye"></i></button>
+                        <button class="btn small ghost" onclick="downloadPDF(${idx})" title="PDF"><i class="fa-solid fa-file-pdf"></i></button>
+                        <button class="btn small danger" onclick="deletePlan(${idx})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            document.getElementById('cardsSection').classList.remove('hidden');
+        }
+
+        window.viewPlan = (idx) => {
+            currentModalData = savedPlans[idx];
+            document.getElementById('modalBody').innerHTML = getPreviewHTML(currentModalData, 'modalLineChart', 'modalBarChart');
+
+            // Show Talyexp style modal
+            const modal = document.getElementById('viewModal');
+            modal.style.display = 'flex';
+
+            setTimeout(() => {
+                currentGraphMode = 'annual';
+                renderLineChart('modalLineChart', currentModalData.graph, 'annual', 'modal');
+                renderBarChart('modalBarChart', currentModalData.graph, 'modal');
+            }, 100);
+        }
+
+        window.closeModal = () => document.getElementById('viewModal').style.display = 'none';
+
+        // 5. DELETE (DELETE to API)
+        window.deletePlan = async (idx) => {
+            if (!confirm("Are you sure you want to delete this plan?")) return;
+
+            const planToDelete = savedPlans[idx];
+            // Fallback if ID is missing (local only plans shouldn't exist anymore but good for safety)
+            if (!planToDelete._id) {
+                savedPlans.splice(idx, 1);
+                renderCards();
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/futureplans/${planToDelete._id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!res.ok) throw new Error("Failed to delete plan");
+
+                // Reload from server
+                await loadSavedPlans();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // Close modal on click outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('viewModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+
+</html>

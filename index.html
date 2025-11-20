@@ -85,6 +85,11 @@
 
                     <div id="nav-links">
                         <button id="homeBtn" class="btn small active">Home</button>
+                        <a href="fut_amount_calc.html" style="text-decoration: none; width: 100%;">
+                            <button class="btn small ghost" style="width: 100%; text-align: left;">
+                                🚀 Future Planner
+                            </button>
+                        </a>
                         <button id="txBtn" class="btn small ghost">Transactions</button>
                         <button id="savingsBtn" class="btn small ghost">Savings</button>
                         <button id="returnsBtn" class="btn small ghost">Returns (To be taken)</button>
@@ -2162,6 +2167,14 @@
             const currentMonthSavings = savings.filter(s => s.monthKey === currentMonthKey);
 
             let insights = [];
+            if (now.getDate() === 1) {
+                insights.push(`
+            <p class="info" style="border-color: #a78bfa;">
+                📅 <strong>It's the 1st of the month!</strong><br> 
+                Please check your <a href="fut_amount_calc.html" style="color: var(--accent)">Future Planner</a> and invest according to your calculation.
+            </p>
+        `);
+            }
             const totalSaved = currentMonthSavings.reduce((s, e) => s + Number(e.amount), 0);
             if (totalSaved > 0) {
                 insights.push(`<p class="positive">You've set aside ${numberFormat(totalSaved)} in savings this month. Great job!</p>`);
@@ -3032,5 +3045,10 @@
         }
 
         init();
+
+
     </script>
+
 </body>
+
+</html>

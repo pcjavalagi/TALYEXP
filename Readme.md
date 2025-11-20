@@ -135,10 +135,6 @@ TALYEXP uses a RESTful API structure. All endpoints return JSON.
 | **Contact** | `/api/contact` | `POST` | Submit user queries. |
 | **Meta** | `/api/meta`, `/api/meta/reset` | `GET`, `POST` | App metadata and data reset. |
 
-## 🎨 Customization
-
-- **Themes**: Colors are defined in `TALYEXP.css` under `:root` (Dark Mode) and `body.light-mode` (Light Mode). Modify `--accent`, `--bg`, and `--card` variables to change the look.
-- **Logic**: `index.html` contains the frontend logic. The `EXCLUDE_CATEGORY` constant can be configured to toggle whether specific categories are excluded from totals.
 
 ## License & Credits
 

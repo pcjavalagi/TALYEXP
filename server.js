@@ -749,6 +749,127 @@ app.post('/api/meta/reset', async (req, res) => {
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname,'index.html'));
 });
+// ===============================
+// 🌱 Auto-Seed Dummy Test Account
+// ===============================
+async function seedDummy() {
+  const username = "dummytest";
+  const password = "Dummy@12345";
+
+  let user = await User.findOne({ username });
+  if (!user) {
+    const passwordHash = await bcrypt.hash(password, 10);
+    await new User({ username, passwordHash }).save();
+    await new Meta({ user: username, startTs: Date.now(), lastExport: "" }).save();
+  }
+
+  const exists = await Expense.countDocuments({ user: username });
+  if (exists > 0) return console.log("✔ Dummy data already exists");
+
+  const categories = [
+    "Groceries","Food","Shopping","Bills",
+    "Travel","Petrol","Medical","Entertainment"
+  ];
+
+  let expenses = [];
+  let savings = [];
+  let incomes = [];
+  let returns = [];
+  let payables = [];
+
+  let start = new Date("2025-01-01");
+  let end = new Date("2025-11-27");
+
+  let day = new Date(start);
+
+  while (day <= end) {
+    // MONTH KEY for saving & income insertion
+    let monthKey = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,"0")}`;
+
+    // Add 2 expenses per day (realistic)
+    for (let i = 0; i < 2; i++) {
+      expenses.push({
+        user: username,
+        title: `Expense`,
+        amount: 150 + Math.floor(Math.random()*900),
+        category: categories[Math.floor(Math.random()*categories.length)],
+        date: new Date(day)
+      });
+    }
+
+    // Add monthly savings, income, borrow/pay once per month
+    if (day.getDate() === 5) {
+      savings.push({
+        user: username,
+        title: "SIP Mutual Fund",
+        amount: 2000 + Math.floor(Math.random()*200),
+        monthKey
+      });
+      savings.push({
+        user: username,
+        title: "Fixed Deposit",
+        amount: 5000 + Math.floor(Math.random()*300),
+        monthKey
+      });
+      incomes.push({
+        user: username,
+        monthKey,
+        income: 52000 + Math.floor(Math.random()*5000),
+      });
+    }
+
+    if (day.getDate() === 9) {
+      returns.push({
+        user: username,
+        personName: "Dad",
+        amount: 500 + Math.floor(Math.random()*200),
+        date: new Date(day),
+        paymentMode: "UPI"
+      });
+    }
+
+    if (day.getDate() === 15) {
+      payables.push({
+        user: username,
+        personName: "Friend",
+        amount: 800 + Math.floor(Math.random()*250),
+        date: new Date(day),
+        paymentMode: "Cash"
+      });
+    }
+
+    day.setDate(day.getDate()+1);
+  }
+
+  await Expense.insertMany(expenses);
+  await Saving.insertMany(savings);
+  await Income.insertMany(incomes);
+  await PendingReturn.insertMany(returns);
+  await Payable.insertMany(payables);
+
+  await Note.insertMany([
+    { user: username,title: "Investing Notes",content: "Increase SIP from next month." },
+    { user: username,title: "Monthly Goal",content: "Save 30% of salary." },
+    { user: username,title: "Budget Review",content: "Reduce Zomato orders." },
+  ]);
+
+  await RecurringItem.insertMany([
+    { user: username,title:"Netflix",amount:199,category:"Entertainment",type:"Expense",dayOfMonth:5 },
+    { user: username,title:"Gym Membership",amount:699,category:"Fitness",type:"Expense",dayOfMonth:2 },
+    { user: username,title:"SIP",amount:2000,category:"Investment",type:"Saving",dayOfMonth:10 },
+  ]);
+
+  await FuturePlan.insertMany([
+    {
+      user: username,
+      inputs: { fv: 1000000,t: 10,r: 12,n: 12 },
+      results: { monthlyContrib: 4500,totalInterest: 180000,totalPrincipal: 200000 },
+      graph:{}
+    }
+  ]);
+
+}
+seedDummy();
 
 // ===============================
 // 🚀 Start Server
@@ -757,3 +878,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
   console.log(`🚀 Server running at http://localhost:${PORT}`)
 );
+

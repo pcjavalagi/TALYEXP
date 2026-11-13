@@ -52,6 +52,15 @@
                 <input id="confirmPass" class="input" placeholder="Confirm Password" type="password" />
             </div>
             <button id="authBtn" class="login-btn">Secure Sign In</button>
+            <button type="button" id="demoLoginBtn" class="demo-login-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                    viewBox="0 0 256 256">
+                    <path
+                        d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm12-120a12,12,0,1,1-12-12A12,12,0,0,1,140,96Zm32,56a8,8,0,0,1-8,8H136v24a8,8,0,0,1-16,0V152a8,8,0,0,1,8-8h36A8,8,0,0,1,172,152Zm-48-24a8,8,0,0,1-8-8,20,20,0,0,1,20-20,8,8,0,0,1,0,16A4,4,0,0,0,132,120,8,8,0,0,1,124,128Z">
+                    </path>
+                </svg>
+                <span>Demo Login (Recruiter / Guest)</span>
+            </button>
             <div class="auth-toggle">
                 <span id="auth-toggle-text">Don't have an account?</span>
                 <a id="auth-toggle-link">Sign Up</a>
@@ -117,7 +126,7 @@
                                 </button>
                                 <button id="fullResetBtn" class="btn small danger">Reset App</button>
                                 <button id="deleteAccountBtn" class="btn small danger">Delete Account</button>
-
+                                <button id="logoutBtn" class="btn ghost small">Logout</button>
                             </div>
                         </div>
                     </div>
@@ -429,8 +438,6 @@
                 Developed by <strong>PCJ</strong>
                 <br> &copy; 2025 TALYEXP. All Rights Reserved.
             </p>
-            <button id="logoutBtn" class="btn ghost small"
-                style="position: absolute; left: 12px; border: 1px solid red; box-shadow: 0 0 5px red;">⏻</button>
             <div id="about-me-btn-container">
                 <button id="aboutMeBtn" class="btn small" title="About Me">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -609,6 +616,8 @@
         const loginScreen = document.getElementById('login-screen');
         const appContainer = document.getElementById('app-container');
         const authBtn = document.getElementById('authBtn');
+        const demoLoginBtn = document.getElementById('demoLoginBtn');
+        const demoBadgeInfo = document.getElementById('demo-badge-info');
         const logoutBtn = document.getElementById('logoutBtn'); // Now in settings
         const fullResetBtn = document.getElementById('fullResetBtn'); // Now in settings
         const homeBtn = document.getElementById('homeBtn');
@@ -812,6 +821,39 @@
         }
 
         // --- UPDATE: Toggle auth mode logic ---
+        async function handleDemoLogin() {
+            if (authMode !== 'login') {
+                toggleAuthMode('login');
+            }
+            loginUserEl.value = 'dummytest';
+            loginPassEl.value = 'Dummy@12345';
+
+            if (demoLoginBtn) {
+                demoLoginBtn.disabled = true;
+                demoLoginBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256" style="animation: spin 1s linear infinite;">
+                        <path d="M128,24a104,104,0,1,0,104,104A104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z" opacity="0.2"/>
+                        <path d="M128,40a88,88,0,0,1,88,88,8,8,0,0,1-16,0,72,72,0,0,0-72-72,8,8,0,0,1,0-16Z"/>
+                    </svg>
+                    <span>Logging in as Demo...</span>
+                `;
+            }
+
+            try {
+                await handleAuth();
+            } finally {
+                if (demoLoginBtn) {
+                    demoLoginBtn.disabled = false;
+                    demoLoginBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256">
+                            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm12-120a12,12,0,1,1-12-12A12,12,0,0,1,140,96Zm32,56a8,8,0,0,1-8,8H136v24a8,8,0,0,1-16,0V152a8,8,0,0,1,8-8h36A8,8,0,0,1,172,152Zm-48-24a8,8,0,0,1-8-8,20,20,0,0,1,20-20,8,8,0,0,1,0,16A4,4,0,0,0,132,120,8,8,0,0,1,124,128Z"></path>
+                        </svg>
+                        <span>Demo Login (Recruiter / Guest)</span>
+                    `;
+                }
+            }
+        }
+
         function toggleAuthMode(mode) {
             authMode = mode;
             loginUserEl.value = loginPassEl.value = confirmPassEl.value = '';
@@ -831,6 +873,8 @@
                 authToggleText.textContent = "Don't have an account? ";
                 authToggleLink.textContent = 'Sign Up';
                 forgotPassLink.style.display = 'block';
+                if (demoLoginBtn) demoLoginBtn.style.display = 'flex';
+                if (demoBadgeInfo) demoBadgeInfo.style.display = 'block';
             } else if (authMode === 'register') {
                 authTitle.textContent = 'Create Account';
                 authSubtitle.textContent = 'Create a new account to get started';
@@ -841,6 +885,8 @@
                 authToggleText.textContent = "Already have an account? ";
                 authToggleLink.textContent = 'Sign In';
                 forgotPassLink.style.display = 'none';
+                if (demoLoginBtn) demoLoginBtn.style.display = 'none';
+                if (demoBadgeInfo) demoBadgeInfo.style.display = 'none';
             } else if (authMode === 'reset') {
                 authTitle.textContent = 'Reset Password';
                 authSubtitle.textContent = 'Enter username and your new password';
@@ -851,6 +897,8 @@
                 authToggleText.textContent = "Remembered your password? ";
                 authToggleLink.textContent = 'Sign In';
                 forgotPassLink.style.display = 'none';
+                if (demoLoginBtn) demoLoginBtn.style.display = 'none';
+                if (demoBadgeInfo) demoBadgeInfo.style.display = 'none';
             }
         }
         // index.html: Inside <script> tag, add these functions (e.g., near other CRUD functions)
@@ -2672,6 +2720,7 @@
             populateMonthDropdowns();
 
             authBtn.addEventListener('click', handleAuth);
+            if (demoLoginBtn) demoLoginBtn.addEventListener('click', handleDemoLogin);
             loginPassEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAuth(); });
             confirmPassEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleAuth(); }); // --- UPDATE ---
 

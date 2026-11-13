@@ -173,6 +173,14 @@ app.post('/api/login', async (req, res) => {
     const ok = await bcrypt.compare(password, user.passwordHash || '');
     if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
 
+    // Auto-ensure dummy data is loaded if logging in as dummytest
+    if (lower === 'dummytest') {
+      const expCount = await Expense.countDocuments({ user: 'dummytest' });
+      if (expCount < 40) {
+        await seedDummy(true);
+      }
+    }
+
     res.json({ message: 'Login successful' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -744,130 +752,378 @@ app.post('/api/meta/reset', async (req, res) => {
 });
 
 // ===============================
+// 🌱 Seed Dummy Data Endpoint
+// ===============================
+app.post('/api/seed-dummy', async (req, res) => {
+  try {
+    await seedDummy(true);
+    res.json({ message: 'Dummy data seeded successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ===============================
 // 🌐 Serve Frontend (React/HTML)
 // ===============================
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname,'index.html'));
 });
 // ===============================
+// 🌱 Helper to calculate Future Plan Data (Matching fut_amount_calc.html)
+// ===============================
+function generateFuturePlanData(fv, p, income, t, r, n) {
+  const r_dec = r / 100;
+  const periodRate = r_dec / n;
+  const totalPeriods = t * n;
+
+  const fv_p = p * Math.pow(1 + periodRate, totalPeriods);
+  const remaining_fv = fv - fv_p;
+
+  let pmt = 0;
+  if (remaining_fv > 0) {
+    if (periodRate === 0) pmt = remaining_fv / totalPeriods;
+    else pmt = remaining_fv / ((Math.pow(1 + periodRate, totalPeriods) - 1) / periodRate);
+  }
+
+  const monthlyContrib = (pmt * n) / 12;
+  const annualContrib = monthlyContrib * 12;
+  const incomePercent = (annualContrib / income) * 100;
+
+  let schedule = [];
+  let balance = p;
+  let totalInvested = p;
+  let totalInterest = 0;
+
+  let annualLabels = ['Year 0'];
+  let annualInvested = [p];
+  let annualInterestOnly = [0];
+  let annualBalance = [p];
+
+  let monthlyLabels = ['Start'];
+  let monthlyInvested = [p];
+  let monthlyBalance = [p];
+
+  let globalPeriodCounter = 0;
+
+  for (let year = 1; year <= t; year++) {
+    let yStart = balance;
+    let yInterest = 0;
+    let yContrib = 0;
+    let periods = [];
+
+    for (let pd = 1; pd <= n; pd++) {
+      globalPeriodCounter++;
+      const interest = balance * periodRate;
+      let contrib = pmt;
+
+      if (balance + interest + contrib > fv) {
+        contrib = Math.max(0, fv - (balance + interest));
+      }
+
+      balance += interest + contrib;
+      yInterest += interest;
+      yContrib += contrib;
+      totalInterest += interest;
+      totalInvested += contrib;
+
+      periods.push({
+        label: n === 12 ? `Month ${(year - 1) * 12 + pd}` : `Period ${globalPeriodCounter}`,
+        start: balance - contrib - interest,
+        contrib: contrib,
+        interest: interest,
+        end: balance,
+      });
+
+      monthlyLabels.push(n === 12 ? `M${(year - 1) * 12 + pd}` : `P${globalPeriodCounter}`);
+      monthlyInvested.push(totalInvested);
+      monthlyBalance.push(balance);
+
+      if (balance >= fv) break;
+    }
+
+    annualLabels.push(`Year ${year}`);
+    annualInvested.push(totalInvested);
+    annualInterestOnly.push(balance - totalInvested);
+    annualBalance.push(balance);
+
+    schedule.push({
+      year: year,
+      periods: periods,
+      summary: { start: yStart, contrib: yContrib, interest: yInterest, end: balance },
+    });
+
+    if (balance >= fv) break;
+  }
+
+  return {
+    inputs: { fv, t, r, n },
+    results: { monthlyContrib, totalInterest, totalPrincipal: totalInvested, incomePercent, schedule },
+    graph: {
+      annual: {
+        labels: annualLabels,
+        invested: annualInvested,
+        interest: annualInterestOnly,
+        balance: annualBalance,
+      },
+      monthly: {
+        labels: monthlyLabels,
+        invested: monthlyInvested,
+        balance: monthlyBalance,
+      },
+    },
+  };
+}
+
+// ===============================
 // 🌱 Auto-Seed Dummy Test Account
 // ===============================
-async function seedDummy() {
-  const username = "dummytest";
-  const password = "Dummy@12345";
+async function seedDummy(force = false) {
+  try {
+    const username = 'dummytest';
+    const password = 'Dummy@12345';
 
-  let user = await User.findOne({ username });
-  if (!user) {
+    let user = await User.findOne({ username });
     const passwordHash = await bcrypt.hash(password, 10);
-    await new User({ username, passwordHash }).save();
-    await new Meta({ user: username, startTs: Date.now(), lastExport: "" }).save();
-  }
-
-  const exists = await Expense.countDocuments({ user: username });
-  if (exists > 0) return console.log("✔ Dummy data already exists");
-
-  const categories = [
-    "Groceries","Food","Shopping","Bills",
-    "Travel","Petrol","Medical","Entertainment"
-  ];
-
-  let expenses = [];
-  let savings = [];
-  let incomes = [];
-  let returns = [];
-  let payables = [];
-
-  let start = new Date("2025-01-01");
-  let end = new Date("2025-11-27");
-
-  let day = new Date(start);
-
-  while (day <= end) {
-    // MONTH KEY for saving & income insertion
-    let monthKey = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,"0")}`;
-
-    // Add 2 expenses per day (realistic)
-    for (let i = 0; i < 2; i++) {
-      expenses.push({
-        user: username,
-        title: `Expense`,
-        amount: 150 + Math.floor(Math.random()*900),
-        category: categories[Math.floor(Math.random()*categories.length)],
-        date: new Date(day)
-      });
+    if (!user) {
+      await new User({ username, passwordHash }).save();
+      await new Meta({ user: username, startTs: Date.now(), lastExport: '' }).save();
+    } else {
+      user.passwordHash = passwordHash;
+      await user.save();
     }
 
-    // Add monthly savings, income, borrow/pay once per month
-    if (day.getDate() === 5) {
-      savings.push({
-        user: username,
-        title: "SIP Mutual Fund",
-        amount: 2000 + Math.floor(Math.random()*200),
-        monthKey
-      });
-      savings.push({
-        user: username,
-        title: "Fixed Deposit",
-        amount: 5000 + Math.floor(Math.random()*300),
-        monthKey
-      });
+    // Check if full dummy data already exists (unless force is requested)
+    if (!force) {
+      const expCount = await Expense.countDocuments({ user: username });
+      const savCount = await Saving.countDocuments({ user: username });
+      const planCount = await FuturePlan.countDocuments({ user: username });
+      const recurCount = await RecurringItem.countDocuments({ user: username });
+      const noteCount = await Note.countDocuments({ user: username });
+      const retCount = await PendingReturn.countDocuments({ user: username });
+      const payCount = await Payable.countDocuments({ user: username });
+
+      if (
+        expCount >= 48 &&
+        savCount >= 48 &&
+        planCount >= 6 &&
+        recurCount >= 6 &&
+        noteCount >= 6 &&
+        retCount >= 6 &&
+        payCount >= 6
+      ) {
+        console.log('✔ Complete dummy data already exists for ' + username);
+        return;
+      }
+    }
+
+    console.log('🌱 Seeding 8 months of comprehensive dummy data for ' + username + '...');
+
+    // Clear previous dummytest data for a clean, consistent experience
+    await Promise.all([
+      Expense.deleteMany({ user: username }),
+      Saving.deleteMany({ user: username }),
+      Income.deleteMany({ user: username }),
+      PendingReturn.deleteMany({ user: username }),
+      Payable.deleteMany({ user: username }),
+      Note.deleteMany({ user: username }),
+      RecurringItem.deleteMany({ user: username }),
+      FuturePlan.deleteMany({ user: username }),
+    ]);
+
+    // Build the 8-month timeline ending at the current month
+    const now = new Date();
+    const months = [];
+    for (let i = 7; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = d.getFullYear();
+      const month = d.getMonth();
+      const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+      months.push({ year, month, monthKey });
+    }
+
+    let expenses = [];
+    let savings = [];
+    let incomes = [];
+
+    // 1. Expenses & 2. Savings & 3. Incomes across all 8 months (6 items per section per month)
+    months.forEach((m, idx) => {
+      // 6 Expenses per month with varied amounts and realistic categories
+      expenses.push(
+        {
+          user: username,
+          title: 'Supermarket Grocery Shopping',
+          amount: 3200 + ((idx * 85) % 400),
+          category: 'Groceries',
+          date: new Date(m.year, m.month, 4),
+          created: new Date(m.year, m.month, 4),
+        },
+        {
+          user: username,
+          title: 'Dinner at Barbeque Nation',
+          amount: 1850 + ((idx * 95) % 350),
+          category: 'Food',
+          date: new Date(m.year, m.month, 8),
+          created: new Date(m.year, m.month, 8),
+        },
+        {
+          user: username,
+          title: 'Electricity & Water Utility Bill',
+          amount: 1650 + ((idx * 60) % 250),
+          category: 'Bills',
+          date: new Date(m.year, m.month, 14),
+          created: new Date(m.year, m.month, 14),
+        },
+        {
+          user: username,
+          title: 'Petrol & Fuel Refill',
+          amount: 2200 + ((idx * 75) % 300),
+          category: 'Transport',
+          date: new Date(m.year, m.month, 19),
+          created: new Date(m.year, m.month, 19),
+        },
+        {
+          user: username,
+          title: 'Amazon Essentials & Electronics',
+          amount: 3100 + ((idx * 110) % 500),
+          category: 'Shopping',
+          date: new Date(m.year, m.month, 23),
+          created: new Date(m.year, m.month, 23),
+        },
+        {
+          user: username,
+          title: 'Weekend Movie & IMAX Experience',
+          amount: 950 + ((idx * 45) % 200),
+          category: 'Entertainment',
+          date: new Date(m.year, m.month, 27),
+          created: new Date(m.year, m.month, 27),
+        }
+      );
+
+      // 6 Savings per month
+      savings.push(
+        { user: username, title: 'Nifty 50 Index Mutual Fund SIP', amount: 5000, monthKey: m.monthKey, created: new Date(m.year, m.month, 5) },
+        { user: username, title: 'HDFC Flexi Cap Equity Fund', amount: 3000, monthKey: m.monthKey, created: new Date(m.year, m.month, 5) },
+        { user: username, title: 'Emergency Liquid Reserve Fund', amount: 4000, monthKey: m.monthKey, created: new Date(m.year, m.month, 7) },
+        { user: username, title: 'Public Provident Fund (PPF)', amount: 2500, monthKey: m.monthKey, created: new Date(m.year, m.month, 10) },
+        { user: username, title: 'Sovereign Gold Bond / ETF', amount: 2000, monthKey: m.monthKey, created: new Date(m.year, m.month, 12) },
+        { user: username, title: 'High-Interest Recurring Deposit', amount: 3500, monthKey: m.monthKey, created: new Date(m.year, m.month, 15) }
+      );
+
+      // Monthly Income
       incomes.push({
         user: username,
-        monthKey,
-        income: 52000 + Math.floor(Math.random()*5000),
+        monthKey: m.monthKey,
+        income: 80000 + (idx * 1000),
       });
-    }
+    });
 
-    if (day.getDate() === 9) {
-      returns.push({
+    // 4. 6 Pending Returns (Lent / To be taken)
+    const returns = [
+      { user: username, personName: 'Rahul Sharma', amount: 4500, date: new Date(Date.now() - 5 * 86400000), paymentMode: 'UPI (Google Pay)', created: new Date() },
+      { user: username, personName: 'Priya Patel', amount: 2200, date: new Date(Date.now() - 9 * 86400000), paymentMode: 'PhonePe', created: new Date() },
+      { user: username, personName: 'Amit Kumar', amount: 6000, date: new Date(Date.now() - 14 * 86400000), paymentMode: 'Cash', created: new Date() },
+      { user: username, personName: 'Sneha Rao', amount: 1800, date: new Date(Date.now() - 20 * 86400000), paymentMode: 'UPI (Paytm)', created: new Date() },
+      { user: username, personName: 'Vikram Singh', amount: 3500, date: new Date(Date.now() - 26 * 86400000), paymentMode: 'Net Banking', created: new Date() },
+      { user: username, personName: 'Rajesh Verma', amount: 2500, date: new Date(Date.now() - 32 * 86400000), paymentMode: 'UPI', created: new Date() },
+    ];
+
+    // 5. 6 Payables (To be returned / To pay)
+    const payables = [
+      { user: username, personName: 'Apartment Society Maintenance', amount: 3500, date: new Date(Date.now() + 3 * 86400000), paymentMode: 'Bank Transfer', created: new Date() },
+      { user: username, personName: 'Karan Verma (Weekend Trip Split)', amount: 2000, date: new Date(Date.now() + 6 * 86400000), paymentMode: 'UPI', created: new Date() },
+      { user: username, personName: 'Car Service Center', amount: 5200, date: new Date(Date.now() + 10 * 86400000), paymentMode: 'Credit Card', created: new Date() },
+      { user: username, personName: 'Office Team Lunch Pool', amount: 1250, date: new Date(Date.now() + 14 * 86400000), paymentMode: 'UPI (GPay)', created: new Date() },
+      { user: username, personName: 'Neha Gupta (Shared Equipment)', amount: 1800, date: new Date(Date.now() + 18 * 86400000), paymentMode: 'Cash', created: new Date() },
+      { user: username, personName: 'Broadband Quarterly Bill', amount: 2399, date: new Date(Date.now() + 22 * 86400000), paymentMode: 'Net Banking', created: new Date() },
+    ];
+
+    // 6. 6 Notes
+    const notes = [
+      {
         user: username,
-        personName: "Dad",
-        amount: 500 + Math.floor(Math.random()*200),
-        date: new Date(day),
-        paymentMode: "UPI"
-      });
-    }
-
-    if (day.getDate() === 15) {
-      payables.push({
+        title: '2026 Wealth & Investment Strategy',
+        content: 'Target allocating 50% in broad-market index funds, 25% in liquid/debt reserves, 15% in sovereign gold, and 10% in high-conviction growth stocks. Review semi-annually.',
+        created: new Date(),
+      },
+      {
         user: username,
-        personName: "Friend",
-        amount: 800 + Math.floor(Math.random()*250),
-        date: new Date(day),
-        paymentMode: "Cash"
-      });
-    }
+        title: 'Tax Planning & Section 80C Review',
+        content: 'Maximize ₹1,50,000 deduction under 80C through ELSS tax-saver mutual funds and PPF contributions. Submit medical insurance health checkup receipts for Section 80D.',
+        created: new Date(),
+      },
+      {
+        user: username,
+        title: 'Emergency Fund Milestone Achieved',
+        content: 'Successfully built 6 months of mandatory living expenses reserve (₹2,50,000) maintained in instant-access high-yield liquid funds.',
+        created: new Date(),
+      },
+      {
+        user: username,
+        title: 'Annual Vacation Planning Budget',
+        content: 'Budget allocated: ₹55,000 for family year-end trip. ₹18,000 advance paid for flights, ₹15,000 for boutique resort. Balance reserved for local dining and tours.',
+        created: new Date(),
+      },
+      {
+        user: username,
+        title: 'Subscription & Recurring Audit',
+        content: 'Conducted bi-annual subscription check: Cancelled redundant gym streaming app. Switched music and OTT to annual family bundles saving ₹850 monthly.',
+        created: new Date(),
+      },
+      {
+        user: username,
+        title: 'Dream Home Down Payment Plan',
+        content: 'Goal: Accumulate ₹25,00,000 down payment in 5 years. Contributing ₹30,000 every month into balanced hybrid mutual funds targeting 10-12% annual return.',
+        created: new Date(),
+      },
+    ];
 
-    day.setDate(day.getDate()+1);
+    // 7. 6 Recurring Items
+    const recurringItems = [
+      { user: username, title: 'Netflix Premium 4K', amount: 649, category: 'Entertainment', type: 'Expense', dayOfMonth: 5, created: new Date() },
+      { user: username, title: 'Society Maintenance Fee', amount: 2500, category: 'Bills', type: 'Expense', dayOfMonth: 1, created: new Date() },
+      { user: username, title: 'Fitness & Gym Membership', amount: 1500, category: 'Fitness', type: 'Expense', dayOfMonth: 3, created: new Date() },
+      { user: username, title: 'High-Speed Fiber Broadband', amount: 999, category: 'Bills', type: 'Expense', dayOfMonth: 10, created: new Date() },
+      { user: username, title: 'Nifty 50 Index Fund SIP', amount: 5000, category: 'Investment', type: 'Saving', dayOfMonth: 5, created: new Date() },
+      { user: username, title: 'Emergency Reserve SIP', amount: 3000, category: 'Savings', type: 'Saving', dayOfMonth: 15, created: new Date() },
+    ];
+
+    // 8. 6 Future Plans (with complete schedules and Chart.js graph objects)
+    const planConfigs = [
+      { fv: 5000000, p: 100000, income: 960000, t: 15, r: 12.0, n: 12 },
+      { fv: 2500000, p: 200000, income: 960000, t: 5, r: 10.5, n: 12 },
+      { fv: 1500000, p: 50000, income: 960000, t: 4, r: 9.5, n: 12 },
+      { fv: 3000000, p: 150000, income: 960000, t: 10, r: 11.0, n: 12 },
+      { fv: 800000, p: 30000, income: 960000, t: 2, r: 8.5, n: 12 },
+      { fv: 500000, p: 25000, income: 960000, t: 2, r: 7.5, n: 12 },
+    ];
+
+    const futurePlans = planConfigs.map(cfg => {
+      const calc = generateFuturePlanData(cfg.fv, cfg.p, cfg.income, cfg.t, cfg.r, cfg.n);
+      return {
+        user: username,
+        inputs: calc.inputs,
+        results: calc.results,
+        graph: calc.graph,
+        created: new Date(),
+      };
+    });
+
+    await Promise.all([
+      Expense.insertMany(expenses),
+      Saving.insertMany(savings),
+      Income.insertMany(incomes),
+      PendingReturn.insertMany(returns),
+      Payable.insertMany(payables),
+      Note.insertMany(notes),
+      RecurringItem.insertMany(recurringItems),
+      FuturePlan.insertMany(futurePlans),
+    ]);
+
+    console.log('✅ Dummy data successfully seeded for ' + username + ' across all sections!');
+  } catch (err) {
+    console.error('❌ Error seeding dummy data:', err);
   }
-
-  await Expense.insertMany(expenses);
-  await Saving.insertMany(savings);
-  await Income.insertMany(incomes);
-  await PendingReturn.insertMany(returns);
-  await Payable.insertMany(payables);
-
-  await Note.insertMany([
-    { user: username,title: "Investing Notes",content: "Increase SIP from next month." },
-    { user: username,title: "Monthly Goal",content: "Save 30% of salary." },
-    { user: username,title: "Budget Review",content: "Reduce Zomato orders." },
-  ]);
-
-  await RecurringItem.insertMany([
-    { user: username,title:"Netflix",amount:199,category:"Entertainment",type:"Expense",dayOfMonth:5 },
-    { user: username,title:"Gym Membership",amount:699,category:"Fitness",type:"Expense",dayOfMonth:2 },
-    { user: username,title:"SIP",amount:2000,category:"Investment",type:"Saving",dayOfMonth:10 },
-  ]);
-
-  await FuturePlan.insertMany([
-    {
-      user: username,
-      inputs: { fv: 1000000,t: 10,r: 12,n: 12 },
-      results: { monthlyContrib: 4500,totalInterest: 180000,totalPrincipal: 200000 },
-      graph:{}
-    }
-  ]);
-
 }
 seedDummy();
 
